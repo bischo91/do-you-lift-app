@@ -163,8 +163,6 @@ async function predictWebcam() {
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
       for (let landmark of result.landmarks) {
-        // const index = result.landmarks.findIndex(landmark);
-        // console.log(index);
         const leftShoulder = [landmark[11].x, landmark[11].y];
         const leftElbow = [landmark[13].x, landmark[13].y];
         const leftWrist = [landmark[15].x, landmark[15].y];
