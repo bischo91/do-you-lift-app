@@ -147,7 +147,11 @@ async function predictWebcam() {
   // Now let's start detecting the stream.
   if (runningMode === "IMAGE") {
     runningMode = "VIDEO";
-    await poseLandmarker.setOptions({ runningMode: "VIDEO" });
+    await poseLandmarker.setOptions({
+      runningMode: "VIDEO",
+      minPoseDetectionConfidence: 0.7,
+      minPosePresenceConfidence: 0.7,
+    });
   }
   let startTimeMs = performance.now();
 
