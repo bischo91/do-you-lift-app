@@ -38,7 +38,8 @@ jobs:
           name: production-files
           path: ./dist
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Firebase Deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_DO_YOU_LIFT_APP }}"
