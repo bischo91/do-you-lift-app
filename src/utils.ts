@@ -1,9 +1,4 @@
-import {
-  DrawingUtils,
-  FilesetResolver,
-  NormalizedLandmark,
-  PoseLandmarker,
-} from "@mediapipe/tasks-vision";
+import { NormalizedLandmark } from "@mediapipe/tasks-vision";
 
 export const calculateAngle = (
   a: [number, number],
