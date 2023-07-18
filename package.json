@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start_": "parcel index.html --open",
-    "build_": "tsc && parcel build index.html",
-    "test_": "echo \"Error: no test specified\" && exit 1",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
