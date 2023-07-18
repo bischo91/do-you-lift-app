@@ -4,4 +4,8 @@ CHANGELOG
 
 ### Added
 
-- Initial project
+- Added initial project
+- Migrated to Typescript
+- Refactored
+- Mapped landmarks
+- Added select for workout

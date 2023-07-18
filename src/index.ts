@@ -4,26 +4,16 @@ import {
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
 
-const demosSection = document.getElementById("demos");
+import { calculateAngle, getLandMarkIndex } from "./utils";
 
-let poseLandmarker = undefined;
+const demosSection: HTMLElement | null = document.getElementById("demos");
+
+let poseLandmarker: PoseLandmarker | undefined = undefined;
 let runningMode = "IMAGE";
 let enableWebcamButton;
 let webcamRunning = false;
 const videoHeight = "360px";
 const videoWidth = "480px";
-
-function calculateAngle(a, b, c) {
-  const radians =
-    Math.atan2(c[1] - b[1], c[0] - b[0]) - Math.atan2(a[1] - b[1], a[0] - b[0]);
-  let angle = Math.abs((radians * 180.0) / Math.PI);
-
-  if (angle > 180) {
-    angle = 360 - angle;
-  }
-
-  return angle;
-}
 
 const createPoseLandmarker = async () => {
   const vision = await FilesetResolver.forVisionTasks(
@@ -31,75 +21,27 @@ const createPoseLandmarker = async () => {
   );
   poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
     baseOptions: {
-      modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
+      // modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
+      modelAssetPath:
+        "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task",
       delegate: "GPU",
     },
-    runningMode: runningMode,
-    numPoses: 2,
+    runningMode: "VIDEO",
+    // runningMode: "LIVE_STREAM",
+    numPoses: 1,
   });
-  demosSection.classList.remove("invisible");
 };
+
 createPoseLandmarker();
 
-const imageContainers = document.getElementsByClassName("detectOnClick");
-
-for (let i = 0; i < imageContainers.length; i++) {
-  imageContainers[i].children[0].addEventListener("click", handleClick);
-}
-
-async function handleClick(event) {
-  if (!poseLandmarker) {
-    console.log("Wait for poseLandmarker to load before clicking!");
-    return;
-  }
-
-  if (runningMode === "VIDEO") {
-    runningMode = "IMAGE";
-    await poseLandmarker.setOptions({ runningMode: "IMAGE" });
-  }
-
-  const allCanvas = event.target.parentNode.getElementsByClassName("canvas");
-  for (var i = allCanvas.length - 1; i >= 0; i--) {
-    const n = allCanvas[i];
-    n.parentNode.removeChild(n);
-  }
-
-  // We can call poseLandmarker.detect as many times as we like with
-  // different image data each time. The result is returned in a callback.
-  poseLandmarker.detect(event.target, (result) => {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute("class", "canvas");
-    canvas.setAttribute("width", event.target.naturalWidth + "px");
-    canvas.setAttribute("height", event.target.naturalHeight + "px");
-    canvas.style =
-      "left: 0px;" +
-      "top: 0px;" +
-      "width: " +
-      event.target.width +
-      "px;" +
-      "height: " +
-      event.target.height +
-      "px;";
-
-    event.target.parentNode.appendChild(canvas);
-    const canvasCtx = canvas.getContext("2d");
-    const drawingUtils = new DrawingUtils(canvasCtx);
-    for (const landmark of result.landmarks) {
-      drawingUtils.drawLandmarks(landmark, {
-        radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
-      });
-      drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
-    }
-  });
-}
-
-const video = document.getElementById("webcam");
-const canvasElement = document.getElementById("output_canvas");
+const video = <HTMLVideoElement>document.getElementById("webcam");
+const canvasElement = <HTMLCanvasElement>(
+  document.getElementById("output_canvas")
+);
 const canvasCtx = canvasElement.getContext("2d");
 const drawingUtils = new DrawingUtils(canvasCtx);
 let stage = null;
 let counter = 0;
-// Check if webcam access is supported.
 const hasGetUserMedia = () => !!navigator.mediaDevices?.getUserMedia;
 
 // If webcam supported, add event listener to button for when user
@@ -112,7 +54,7 @@ if (hasGetUserMedia()) {
 }
 
 // Enable the live webcam view and start detection.
-function enableCam(event) {
+function enableCam() {
   if (!poseLandmarker) {
     console.log("Wait! poseLandmaker not loaded yet.");
     return;
@@ -126,13 +68,8 @@ function enableCam(event) {
     enableWebcamButton.innerText = "DISABLE PREDICTIONS";
   }
 
-  // getUsermedia parameters.
-  const constraints = {
-    video: true,
-  };
-
   // Activate the webcam stream.
-  navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+  navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
     video.srcObject = stream;
     video.addEventListener("loadeddata", predictWebcam);
   });
@@ -161,12 +98,17 @@ async function predictWebcam() {
     poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
       canvasCtx.save();
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
+      console.log(result);
       for (let landmark of result.landmarks) {
-        const leftShoulder = [landmark[11].x, landmark[11].y];
-        const leftElbow = [landmark[13].x, landmark[13].y];
-        const leftWrist = [landmark[15].x, landmark[15].y];
-        const angle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+        // const leftShoulder: [number, number] = [landmark[11].x, landmark[11].y];
+        const leftShoulder = getLandMarkIndex(landmark).leftShoulder;
+        const leftElbow: [number, number] = [landmark[13].x, landmark[13].y];
+        const leftWrist: [number, number] = [landmark[15].x, landmark[15].y];
+        const angle = calculateAngle(
+          [leftShoulder.x, leftShoulder.y],
+          leftElbow,
+          leftWrist
+        );
         canvasCtx.font = "50px Arial";
         canvasCtx.fillStyle = "lime";
         canvasCtx.fillText(`Angle: ${angle.toFixed(2)}`, 10, 30);
@@ -180,7 +122,6 @@ async function predictWebcam() {
         }
         canvasCtx.font = "50px Arial";
         canvasCtx.fillStyle = "blue";
-        console.log(counter);
         canvasCtx.fillText(`Reps: ${counter}`, 10, 80);
 
         drawingUtils.drawLandmarks(landmark, {

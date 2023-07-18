@@ -1,12 +1,23 @@
-<h1>Left arm curl</h1>
+<h1>Do You Lift?</h1>
 
 <section id="demos" class="invisible">
   <div id="liveView" class="videoView">
-    <button id="webcamButton" class="mdc-button mdc-button--raised">
-      <span class="mdc-button__ripple"></span>
-      <span class="mdc-button__label">ENABLE WEBCAM</span>
-    </button>
-    <div style="position: relative">
+    <div style="margin: 10px">
+      <select name="Choose workout" size="3" multiple>
+        <option>Dumbbell curl (left)</option>
+        <option>Dumbbell curl (right)</option>
+        <option>Bench Press</option>
+        <option>Squat</option>
+        <option>Deadlift</option>
+      </select>
+    </div>
+    <div style="margin: 10px">
+      <button id="webcamButton" class="mdc-button mdc-button--raised">
+        <span class="mdc-button__ripple"></span>
+        <span class="mdc-button__label">ENABLE WEBCAM</span>
+      </button>
+    </div>
+    <div style="position: relative; margin: 10px">
       <video
         id="webcam"
         style="width: 1280px; height: 720px; position: abso"
@@ -20,7 +31,7 @@
         height="720"
         style="position: absolute; left: 0px; top: 0px"
       ></canvas>
-      <script src="src/index.js"></script>
+      <script src="built/index.js"></script>
     </div>
   </div>
 </section>
