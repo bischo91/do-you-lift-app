@@ -32,13 +32,13 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: production-files
-          path: ./dist
+          path: ./build
 
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
           name: production-files
-          path: ./dist
+          path: ./build
 
       - name: Firebase Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
