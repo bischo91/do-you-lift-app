@@ -15,6 +15,10 @@ export const Webcam = () => {
     let runningMode = "IMAGE";
     let enableWebcamButton;
     let webcamRunning = false;
+    // const videoHeight = window.innerHeight / 2;
+    const videoHeight = "360px";
+    const videoWidth = "480px";
+    // const videoWidth = window.innerWidth / 2;
 
     const createPoseLandmarker = async () => {
       const vision = await FilesetResolver.forVisionTasks(
@@ -76,8 +80,10 @@ export const Webcam = () => {
     let lastVideoTime = -1;
 
     const predictWebcam = async () => {
-      canvasElement.style.height = video.style.height;
-      canvasElement.style.width = video.style.width;
+      canvasElement.style.height = videoHeight;
+      video.style.height = videoHeight;
+      canvasElement.style.width = videoWidth;
+      video.style.width = videoWidth;
       // Now let's start detecting the stream.
       if (runningMode === "IMAGE") {
         runningMode = "VIDEO";
@@ -148,7 +154,7 @@ export const Webcam = () => {
   }, []);
   return (
     <div className="flex m-auto">
-      <button id="webcamButton" className="bg-gray-400 rounded-lg p-3">
+      <button id="webcamButton" className="p-3 bg-gray-400 rounded-lg">
         <span className="">ENABLE WEBCAM</span>
       </button>
       <video
@@ -166,7 +172,7 @@ export const Webcam = () => {
         // className="w-full h-full"
       ></video>
       <canvas
-        // className="h-full w-full"
+        // className="w-full h-full"
         ref={canvasRef}
         style={{
           width: "1280px",
