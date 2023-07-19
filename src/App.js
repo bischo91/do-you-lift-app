@@ -1,11 +1,11 @@
 import "./App.css";
 
-import { Webcam } from "./components/Webcam";
+import { MainContainer } from "./routes/MainContainer";
 
 function App() {
   return (
     <div className="App">
-      <Webcam />
+      <MainContainer />
     </div>
   );
 }

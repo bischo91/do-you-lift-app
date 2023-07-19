@@ -3,18 +3,18 @@ import {
   FilesetResolver,
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
+import React, { useEffect, useRef } from "react";
 import { calculateAngle, getLandMarkIndex } from "../utils";
 
-import React from "react";
-
 export const Webcam = () => {
-  React.useEffect(() => {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
     let poseLandmarker: PoseLandmarker | undefined = undefined;
     let runningMode = "IMAGE";
     let enableWebcamButton;
     let webcamRunning = false;
-    const videoHeight = "360px";
-    const videoWidth = "480px";
 
     const createPoseLandmarker = async () => {
       const vision = await FilesetResolver.forVisionTasks(
@@ -39,7 +39,7 @@ export const Webcam = () => {
         return;
       }
 
-      if (webcamRunning === true) {
+      if (webcamRunning) {
         webcamRunning = false;
         enableWebcamButton.innerText = "ENABLE PREDICTIONS";
       } else {
@@ -55,10 +55,8 @@ export const Webcam = () => {
     };
 
     createPoseLandmarker();
-    const video = document.getElementById("webcam") as HTMLVideoElement;
-    const canvasElement = document.getElementById(
-      "output_canvas"
-    ) as HTMLCanvasElement;
+    const video = videoRef.current;
+    const canvasElement = canvasRef.current;
     const canvasCtx = canvasElement.getContext("2d");
     const drawingUtils = new DrawingUtils(canvasCtx);
     let stage = null;
@@ -78,10 +76,8 @@ export const Webcam = () => {
     let lastVideoTime = -1;
 
     const predictWebcam = async () => {
-      canvasElement.style.height = videoHeight;
-      video.style.height = videoHeight;
-      canvasElement.style.width = videoWidth;
-      video.style.width = videoWidth;
+      canvasElement.style.height = video.style.height;
+      canvasElement.style.width = video.style.width;
       // Now let's start detecting the stream.
       if (runningMode === "IMAGE") {
         runningMode = "VIDEO";
@@ -151,53 +147,36 @@ export const Webcam = () => {
     };
   }, []);
   return (
-    <div>
-      <h1>Do You Lift?</h1>
-
-      <section id="demos" className="invisible">
-        <div id="liveView" className="videoView">
-          <div>
-            {/* <select name="Choose workout" size="3" multiple>
-              <option>Dumbbell curl (left)</option>
-              <option>Dumbbell curl (right)</option>
-              <option>Bench Press</option>
-              <option>Squat</option>
-              <option>Deadlift</option>
-            </select> */}
-          </div>
-          <div>
-            <button id="webcamButton" className="mdc-button mdc-button--raised">
-              <span className="mdc-button__ripple"></span>
-              <span className="mdc-button__label">ENABLE WEBCAM</span>
-            </button>
-          </div>
-          <div style={{ position: "relative", margin: "10px" }}>
-            <video
-              id="webcam"
-              style={{
-                width: "1280px",
-                height: "720px",
-                position: "absolute",
-                left: "0px",
-                top: "0px",
-              }}
-              autoPlay
-              playsInline
-              // className="w-full"
-            ></video>
-            <canvas
-              className="output_canvas"
-              id="output_canvas"
-              style={{
-                position: "absolute",
-                left: "0px",
-                top: "0px",
-              }}
-            ></canvas>
-            <script src="built/index.js"></script>
-          </div>
-        </div>
-      </section>
+    <div className="flex m-auto">
+      <button id="webcamButton" className="bg-gray-400 rounded-lg p-3">
+        <span className="">ENABLE WEBCAM</span>
+      </button>
+      <video
+        ref={videoRef}
+        style={{
+          width: "1280px",
+          //or window.innerWidth
+          height: "720px",
+          position: "absolute",
+          left: "0px",
+          top: "50px",
+        }}
+        autoPlay
+        playsInline
+        // className="w-full h-full"
+      ></video>
+      <canvas
+        // className="h-full w-full"
+        ref={canvasRef}
+        style={{
+          width: "1280px",
+          height: "720px",
+          position: "absolute",
+          left: "0px",
+          top: "50px",
+        }}
+      />
+      <script src="built/index.js"></script>
     </div>
   );
 };
