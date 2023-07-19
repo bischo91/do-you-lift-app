@@ -1,5 +1,11 @@
 CHANGELOG
 
+- 2023.07.18
+
+### Added
+
+- TailwindCSS
+
 - 2023.07.17
 
 ### Added
