@@ -1,5 +1,12 @@
 CHANGELOG
 
+- 2023.07.19
+
+### Added
+
+- Options for workout type
+- Select workout type
+
 - 2023.07.18
 
 ### Added

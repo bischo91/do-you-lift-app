@@ -1,20 +1,35 @@
-import React from "react";
+import React, {useState} from "react";
+
+import Select from 'react-select'
 import { Webcam } from "../components/Webcam";
 
 export const MainContainer = () => {
+  const options = [
+    { value: 'armCurl', label: 'Arm Curl' },
+    { value: 'squat', label: 'Squat' },
+    { value: 'benchPress', label: 'Bench Press' },
+    // { value: 'deadlift', label: 'Deadlift' },
+    {value:'demo', label:'Demo'}
+  ];
+  const [selectedOption, setSelectedOption] = useState(null)
+
+  const changeOption = (selected) => {
+    if (!selected) setSelectedOption(options[3]) //demo for now
+    else if (selected !== selectedOption) setSelectedOption(selected)
+  }
+
   return (
     <div className="flex flex-col">
-      <h1 className="font-bold m-auto">Do You Lift?</h1>
+      <h1 className="m-auto font-bold">Do You Lift?</h1>
       <div>
-        {/* <select name="Choose workout" size="3" multiple>
-              <option>Dumbbell curl (left)</option>
-              <option>Dumbbell curl (right)</option>
-              <option>Bench Press</option>
-              <option>Squat</option>
-              <option>Deadlift</option>
-            </select> */}
+            <Select 
+            defaultValue={null}
+            onChange={changeOption}
+            value={selectedOption}
+            options={options}
+            />
       </div>
-      <Webcam />
+      <Webcam workoutOption={selectedOption}/>
     </div>
   );
 };
