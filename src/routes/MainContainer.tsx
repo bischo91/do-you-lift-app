@@ -13,13 +13,19 @@ export const MainContainer = () => {
   ];
   const [selectedOption, setSelectedOption] = useState(null)
 
+  const changeOption = (selected) => {
+    if (!selected) setSelectedOption(options[3]) //demo for now
+    else if (selected !== selectedOption) setSelectedOption(selected)
+  }
+
   return (
     <div className="flex flex-col">
       <h1 className="m-auto font-bold">Do You Lift?</h1>
       <div>
             <Select 
             defaultValue={null}
-            onChange={setSelectedOption}
+            onChange={changeOption}
+            value={selectedOption}
             options={options}
             />
       </div>

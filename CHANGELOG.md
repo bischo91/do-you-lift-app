@@ -7,6 +7,12 @@ CHANGELOG
 - Options for workout type
 - Select workout type
 
+- 2023.07.18
+
+### Added
+
+- TailwindCSS
+
 - 2023.07.17
 
 ### Added
