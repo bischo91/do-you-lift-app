@@ -57,3 +57,24 @@ export const getLandMarkIndex = (
     };
   return landmarkMapped;
 };
+
+export const getBodyPoints = (landmark) => {
+  return {
+    left: {
+      shoulder:getLandMarkIndex(landmark).leftShoulder,
+      elbow:getLandMarkIndex(landmark).leftElbow,
+      wrist:getLandMarkIndex(landmark).leftWrist,
+      hip:getLandMarkIndex(landmark).leftHip,
+      knee:getLandMarkIndex(landmark).leftKnee,
+      ankle:getLandMarkIndex(landmark).leftAnkle
+    },
+    right: {
+      shoulder:getLandMarkIndex(landmark).rightShoulder,
+      elbow: getLandMarkIndex(landmark).rightElbow,
+      wrist: getLandMarkIndex(landmark).rightWrist,
+      hip:getLandMarkIndex(landmark).rightHip,
+      knee:getLandMarkIndex(landmark).rightKnee,
+      ankle:getLandMarkIndex(landmark).rightAnkle
+    }
+  }
+}
