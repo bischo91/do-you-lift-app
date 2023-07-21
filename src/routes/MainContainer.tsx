@@ -19,11 +19,11 @@ export const MainContainer = () => {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col space-y-4">
       <h1 className="m-auto font-bold">Do You Lift?</h1>
       <div>
             <Select 
-            defaultValue={null}
+            defaultValue={"Select T"}
             onChange={changeOption}
             value={selectedOption}
             options={options}

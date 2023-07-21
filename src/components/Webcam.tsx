@@ -3,16 +3,25 @@ import {
   FilesetResolver,
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { calculateAngle, getBodyPoints } from "../utils";
 
 export const Webcam = ({workoutOption}) => {
+  const [renderCountStage, setRenderCountStage] = useState({leftCount:0, leftStage: '', rightCount:0, rightStage:''})
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const divRef = useRef(null);
 
+  // const [cameraDimension, setCameraDimension] = useState(null)
+  // let videoHeight
+  // let videoWidth
   useEffect(() => {
-    const videoHeight = (window.innerWidth*3/4).toString()+'px';
-    const videoWidth = window.innerWidth.toString()+'px';
+    let leftCount = 0
+    let rightCount = 0
+    let leftStage = ''
+    let rightStage = ''
+    // videoHeight = (window.innerWidth*(cameraDimension?.height/cameraDimension?.width ?? 3/4)).toString()+'px';
+    // videoWidth = window.innerWidth.toString()+'px';
     let poseLandmarker: PoseLandmarker | undefined = undefined;
     let runningMode = "IMAGE";
     let enableWebcamButton;
@@ -51,6 +60,7 @@ export const Webcam = ({workoutOption}) => {
 
       // Activate the webcam stream.
       navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        // setCameraDimension(stream.getVideoTracks()[0].getSettings())
         video.srcObject = stream;
         video.addEventListener("loadeddata", predictWebcam);
       });
@@ -61,18 +71,20 @@ export const Webcam = ({workoutOption}) => {
     const canvasElement = canvasRef.current;
     const canvasCtx = canvasElement.getContext("2d");
     const drawingUtils = new DrawingUtils(canvasCtx);
-    let leftStage = null;
-    let leftCounter = 0;
-    let rightStage = null;
-    let rightCounter = 0;
-
+    
+    const handleResize = () => {
+      canvasElement.style.height = video.offsetHeight.toString()+'px'
+    }
+    window.addEventListener('resize', handleResize)
+    
     const hasGetUserMedia = () => !!navigator.mediaDevices?.getUserMedia;
-
+    
     // If webcam supported, add event listener to button for when user
     // wants to activate it.
     if (hasGetUserMedia()) {
       enableWebcamButton = document.getElementById("webcamButton");
       enableWebcamButton.addEventListener("click", enableCam);
+      
     } else {
       console.warn("getUserMedia() is not supported by your browser");
     }
@@ -80,18 +92,15 @@ export const Webcam = ({workoutOption}) => {
     let lastVideoTime = -1;
 
     const predictWebcam = async () => {
-      canvasElement.style.height = videoHeight;
-      video.style.height = videoHeight;
-      canvasElement.style.width = videoWidth;
-      video.style.width = videoWidth;
       // Now let's start detecting the stream.
       if (runningMode === "IMAGE") {
         runningMode = "VIDEO";
         await poseLandmarker.setOptions({
           runningMode: "VIDEO",
-          minPoseDetectionConfidence: 0.7,
-          minPosePresenceConfidence: 0.7,
+          minPoseDetectionConfidence: 0.8,
+          minPosePresenceConfidence: 0.8,
         });
+        handleResize()
       }
       let startTimeMs = performance.now();
 
@@ -100,7 +109,6 @@ export const Webcam = ({workoutOption}) => {
 
         poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
           canvasCtx.save();
-          
           for (let landmark of result.landmarks) {
             // const leftShoulder: [number, number] = [landmark[11].x, landmark[11].y];
             const body = getBodyPoints(landmark)
@@ -127,73 +135,83 @@ export const Webcam = ({workoutOption}) => {
             )
             canvasCtx.font = "8px Arial";
             canvasCtx.fillStyle = "black";
-            // console.log(workoutOption)
+
             if (workoutOption?.value === 'armCurl') {
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
               const leftAngle = leftArmAngle
               const rightAngle = rightArmAngle
               canvasCtx.fillText(`Angle: ${leftAngle.toFixed(0)}`, 10, 7);
               canvasCtx.fillText(`Angle: ${rightAngle.toFixed(0)}`, 220, 7);
-    
+
               if (leftAngle > 120) {
-                leftStage = "down";
+                leftStage='down'
+                  // console.log('downn')
+                  // setLeftStage("down");
+
+                  // console.log(leftStage)
               }
               if (leftAngle < 45 && leftStage === "down") {
-                leftStage = "up";
-                leftCounter++;
+                // setLeftStage("up");
+                // setLeftCounter((prevCount) => prevCount+1)
+                leftStage='up'
+                leftCount++
               }
               if (rightAngle > 120) {
-                rightStage = "down";
+                // setRightStage("down");
+                rightStage='down'
               }
               if (rightAngle < 45 && rightStage === "down") {
-                rightStage = "up";
-                rightCounter++;
+                // setRightStage("up");
+                // setRightCounter((prevCount) => prevCount+1);
+                rightStage='up'
+                rightCount++
               }
-              canvasCtx.fillText(`Reps: ${leftCounter}`, 10, 15);
-              canvasCtx.fillText(`Reps: ${rightCounter}`, 220, 15);
+              
+              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);
+              canvasCtx.fillText(`Reps: ${rightCount}`, 220, 15);
             } else if (workoutOption?.value === 'squat') {
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
               const leftAngle = leftLegAngle
               const rightAngle = rightLegAngle
               if (leftAngle > 160 && rightAngle > 160) {
-                leftStage = "up";
+                leftStage='up'
+                leftCount++
               }
               if (leftAngle <  100 && rightAngle < 100 && leftStage === "up") {
-                leftStage = "down";
-                leftCounter++;
+                leftStage='down'
               }
               canvasCtx.fillText(`Angle: ${leftAngle.toFixed(0)}`, 10, 7);
               canvasCtx.fillText(`Angle: ${rightAngle.toFixed(0)}`, 220, 7);
-              canvasCtx.fillText(`Reps: ${leftCounter}`, 10, 15);
+              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);
               // canvasCtx.fillText(`Reps: ${rightCounter}`, 220, 15);
             } else if (workoutOption?.value === 'benchPress') {
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
               const leftAngle = leftArmAngle
               const rightAngle = rightArmAngle
               if (leftAngle > 160 && rightAngle > 160) {
-                leftStage = "up";
+                leftStage='up'
+                leftCount++
               }
               if (leftAngle <  90 && rightAngle < 90 && leftStage === "up") {
-                leftStage = "down";
-                leftCounter++;
+                leftStage='down'
               }
               canvasCtx.fillText(`Angle: ${leftAngle.toFixed(0)}`, 10, 7);
               canvasCtx.fillText(`Angle: ${rightAngle.toFixed(0)}`, 220, 7);
-              canvasCtx.fillText(`Reps: ${leftCounter}`, 10, 15);              
+              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);              
             } else if (workoutOption?.value === 'benchPress') {
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
               const leftAngle = leftArmAngle
               const rightAngle = rightArmAngle
               if (leftAngle > 160 && rightAngle > 160) {
-                leftStage = "up";
+                leftStage='up'
+                leftCount++
               }
               if (leftAngle <  90 && rightAngle < 90 && leftStage === "up") {
-                leftStage = "down";
-                leftCounter++;
+                leftStage='down'
               }
               canvasCtx.fillText(`Angle: ${leftAngle.toFixed(0)}`, 10, 7);
               canvasCtx.fillText(`Angle: ${rightAngle.toFixed(0)}`, 220, 7);
-              canvasCtx.fillText(`Reps: ${leftCounter}`, 10, 15);              
+              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);              
             } else if (workoutOption?.value === 'demo') {
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
               canvasCtx.fillText(`left arm angle: ${leftArmAngle.toFixed(0)}`, 10, 7);
@@ -213,9 +231,7 @@ export const Webcam = ({workoutOption}) => {
               canvasCtx.fillText(`right knee: (${body.right.knee.x.toFixed(2)}, ${body.right.knee.y.toFixed(2)}, ${body.right.knee.z.toFixed(2)})`, 200, 67);
               canvasCtx.fillText(`right ankle: (${body.right.ankle.x.toFixed(2)}, ${body.right.ankle.y.toFixed(2)}, ${body.right.ankle.z.toFixed(2)})`, 200, 77);
             }
-
-
-
+            
             drawingUtils.drawLandmarks(landmark, {
               radius: (data) =>
                 DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
@@ -224,6 +240,7 @@ export const Webcam = ({workoutOption}) => {
               landmark,
               PoseLandmarker.POSE_CONNECTIONS
             );
+            if (workoutOption) setRenderCountStage({leftCount, leftStage, rightCount, rightStage})
           }
 
           canvasCtx.restore();
@@ -231,11 +248,17 @@ export const Webcam = ({workoutOption}) => {
       }
 
       // Call this function again to keep predicting when the browser is ready.
-      if (webcamRunning === true) {
+      if (webcamRunning === true) {      
         window.requestAnimationFrame(predictWebcam);
+
+        // setRightCounter(rightCount)
+        // setRightStage(rightStage)
       }
     };
-  }, [workoutOption, workoutOption?.value]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutOption]);
+    // , cameraDimension?.height, cameraDimension?.width
+
   return (
     <div>
     <div>
@@ -243,28 +266,37 @@ export const Webcam = ({workoutOption}) => {
         <span className="">ENABLE WEBCAM</span>
     </button>
     </div>
-    <div style={{ position: "relative", margin: "10px" }}>
+    <span>{workoutOption?.label}</span>
+    <div className="inline-flex w-full">
+      <div className="flex-col w-full ml-0 space-y-2">
+        <span>{renderCountStage.leftStage}</span>
+        <span>{renderCountStage.leftCount}</span>
+      </div>
+      <div className="flex-col w-full mr-0 space-y-2">
+        <span>{renderCountStage.rightStage}</span>
+        <span>{renderCountStage.rightCount}</span>
+      </div>
+    </div>
+    <div style={{ position: "relative", margin: "10px" }} ref={divRef}>
       <video
         ref={videoRef}
         style={{
-          width: "1280px",
-          height: "720px",
           position: "absolute",
           left: "0px",
           top: "0px",
+          width: "100%",
+          height: "auto"
         }}
         autoPlay
         playsInline
-        // className="w-full"
       ></video>
       <canvas
-        className="output_canvas"
-        id="output_canvas"
         ref={canvasRef}
         style={{
           position: "absolute",
           left: "0px",
           top: "0px",
+          width:"100%"
         }}
       ></canvas>
       <script src="built/index.js"></script>
