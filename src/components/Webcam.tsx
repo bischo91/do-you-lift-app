@@ -14,14 +14,15 @@ export const Webcam = ({workoutOption}) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const divRef = useRef(null);
-  let leftCount = 0
-  let rightCount = 0
-  let leftUpDown = ''
-  let rightUpDown = ''
+
   // const [cameraDimension, setCameraDimension] = useState(null)
   // let videoHeight
   // let videoWidth
   useEffect(() => {
+    let leftCount = 0
+    let rightCount = 0
+    let leftUpDown = ''
+    let rightUpDown = ''
     // videoHeight = (window.innerWidth*(cameraDimension?.height/cameraDimension?.width ?? 3/4)).toString()+'px';
     // videoWidth = window.innerWidth.toString()+'px';
     let poseLandmarker: PoseLandmarker | undefined = undefined;
