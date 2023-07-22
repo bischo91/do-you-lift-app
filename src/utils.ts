@@ -78,3 +78,27 @@ export const getBodyPoints = (landmark) => {
     }
   }
 }
+
+export const getAngles = (body) => {
+  const leftArmAngle = calculateAngle(
+    [body.left.shoulder.x, body.left.shoulder.y],
+    [body.left.elbow.x, body.left.elbow.y],
+    [body.left.wrist.x, body.left.wrist.y]
+  );
+  const rightArmAngle = calculateAngle(
+    [body.right.shoulder.x, body.right.shoulder.y],
+    [body.right.elbow.x, body.right.elbow.y],
+    [body.right.wrist.x, body.right.wrist.y]
+  );
+  const leftLegAngle = calculateAngle(
+    [body.left.hip.x, body.left.hip.y],
+    [body.left.knee.x, body.left.knee.y],
+    [body.left.ankle.x, body.left.ankle.y]
+  )
+  const rightLegAngle = calculateAngle(
+    [body.right.hip.x, body.right.hip.y],
+    [body.right.knee.x, body.right.knee.y],
+    [body.right.ankle.x, body.right.ankle.y]
+  )
+  return {leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle}
+}
