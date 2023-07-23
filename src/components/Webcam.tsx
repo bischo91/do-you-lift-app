@@ -12,11 +12,11 @@ export const Webcam = ({workoutOption}) => {
   const canvasRef = useRef(null);
   const divRef = useRef(null);
   const workoutRef = useRef(null)
-  let leftCount = 0
-  let rightCount = 0
-  let leftStage = ''
-  let rightStage = ''
   useEffect(() => {
+    let leftCount = 0
+    let rightCount = 0
+    let leftStage = ''
+    let rightStage = ''
 
     let poseLandmarker: PoseLandmarker | undefined = undefined;
     let initialize = true;
