@@ -8,6 +8,7 @@
 
 - Style for count and stage state
 - CHANGELOG format
+- Webcam text and background
 
 ## [0.3.1] - 2023.07.19
 

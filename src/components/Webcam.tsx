@@ -113,7 +113,6 @@ export const Webcam = ({ workoutOption }) => {
               getAngles(body);
 
             canvasCtx.font = "8px Arial";
-            canvasCtx.fillStyle = "black";
 
             if (currentWorkout === "armCurl") {
               canvasCtx.clearRect(
@@ -122,8 +121,14 @@ export const Webcam = ({ workoutOption }) => {
                 canvasElement.width,
                 canvasElement.height
               );
-              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 10, 7);
-              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 220, 7);
+              canvasCtx.fillStyle = "white";
+              canvasCtx.fillRect(8, 2, 50, 10);
+              canvasCtx.fillStyle = "black";
+              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 12, 9);
+              canvasCtx.fillStyle = "white";
+              canvasCtx.fillRect(221, 2, 50, 10);
+              canvasCtx.fillStyle = "black";
+              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 225, 9);
               if (leftArmAngle > 120) {
                 leftStage = "down";
               }
@@ -138,8 +143,6 @@ export const Webcam = ({ workoutOption }) => {
                 rightStage = "up";
                 rightCount++;
               }
-              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);
-              canvasCtx.fillText(`Reps: ${rightCount}`, 220, 15);
             } else if (currentWorkout === "squat") {
               canvasCtx.clearRect(
                 0,
@@ -158,31 +161,14 @@ export const Webcam = ({ workoutOption }) => {
               if (leftLegAngle < 100 && rightLegAngle < 100) {
                 leftStage = "down";
               }
-              canvasCtx.fillText(`Angle: ${leftLegAngle.toFixed(0)}`, 10, 7);
-              canvasCtx.fillText(`Angle: ${rightLegAngle.toFixed(0)}`, 220, 7);
-              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);
-              // canvasCtx.fillText(`Reps: ${rightCounter}`, 220, 15);
-            } else if (currentWorkout === "benchPress") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
-              );
-              if (
-                leftArmAngle > 160 &&
-                rightArmAngle > 160 &&
-                leftStage === "down"
-              ) {
-                leftStage = "up";
-                leftCount++;
-              }
-              if (leftArmAngle < 90 && rightArmAngle < 90) {
-                leftStage = "down";
-              }
-              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 10, 7);
-              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 220, 7);
-              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);
+              canvasCtx.fillStyle = "white";
+              canvasCtx.fillRect(8, 2, 50, 10);
+              canvasCtx.fillStyle = "black";
+              canvasCtx.fillText(`Angle: ${leftLegAngle.toFixed(0)}`, 12, 9);
+              canvasCtx.fillStyle = "white";
+              canvasCtx.fillRect(221, 2, 50, 10);
+              canvasCtx.fillStyle = "black";
+              canvasCtx.fillText(`Angle: ${rightLegAngle.toFixed(0)}`, 225, 9);
             } else if (currentWorkout === "benchPress") {
               canvasCtx.clearRect(
                 0,
@@ -198,12 +184,17 @@ export const Webcam = ({ workoutOption }) => {
                 leftStage = "up";
                 leftCount++;
               }
-              if (leftArmAngle < 90 && rightArmAngle < 90) {
+              if (leftArmAngle < 50 && rightArmAngle < 50) {
                 leftStage = "down";
               }
-              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 10, 7);
-              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 220, 7);
-              canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);
+              canvasCtx.fillStyle = "white";
+              canvasCtx.fillRect(8, 2, 50, 10);
+              canvasCtx.fillStyle = "black";
+              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 12, 9);
+              canvasCtx.fillStyle = "white";
+              canvasCtx.fillRect(221, 2, 50, 10);
+              canvasCtx.fillStyle = "black";
+              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 225, 9);
             } else if (currentWorkout === "demo") {
               canvasCtx.clearRect(
                 0,
@@ -373,7 +364,6 @@ export const Webcam = ({ workoutOption }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workoutOption]);
-  // , cameraDimension?.height, cameraDimension?.width
 
   return (
     <div>
@@ -382,26 +372,32 @@ export const Webcam = ({ workoutOption }) => {
           <span className="">{buttonText}</span>
         </button>
       </div>
-      <span ref={workoutRef}>{workoutOption?.value}</span>
+      <span ref={workoutRef} hidden>
+        {workoutOption?.value}
+      </span>
       <div className="inline-flex w-full">
-        <div className="flex-col w-full ml-0 space-y-2">
-          <div className="text-4xl">
-            <span className="text-">
-              {renderCountStage.leftStage.toUpperCase()}
-            </span>
+        {buttonText === "Reset" && workoutOption?.value !== "demo" && (
+          <div className="flex-col w-full ml-0 space-y-2">
+            <div className="text-4xl">
+              <span className="text-">
+                {renderCountStage.leftStage.toUpperCase()}
+              </span>
+            </div>
+            <div className="text-4xl">
+              <span>{renderCountStage.leftCount}</span>
+            </div>
           </div>
-          <div className="text-4xl">
-            <span className="text-right">{renderCountStage.leftCount}</span>
+        )}
+        {buttonText === "Reset" && workoutOption?.value === "armCurl" && (
+          <div className="flex-col w-full mr-0 space-y-2">
+            <div className="text-4xl">
+              <span>{renderCountStage.rightStage.toUpperCase()}</span>
+            </div>
+            <div className="text-4xl">
+              <span>{renderCountStage.rightCount}</span>
+            </div>
           </div>
-        </div>
-        <div className="flex-col w-full mr-0 space-y-2">
-          <div className="text-4xl">
-            <span>{renderCountStage.rightStage.toUpperCase()}</span>
-          </div>
-          <div className="text-4xl">
-            <span>{renderCountStage.rightCount}</span>
-          </div>
-        </div>
+        )}
       </div>
       <div style={{ position: "relative", margin: "10px" }} ref={divRef}>
         <video

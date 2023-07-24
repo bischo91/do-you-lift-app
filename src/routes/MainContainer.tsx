@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 import Select from "react-select";
 import { Webcam } from "../components/Webcam";
