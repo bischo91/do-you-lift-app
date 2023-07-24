@@ -1,25 +1,35 @@
-CHANGELOG
+# Do-You-Lift App - CHANGELOG
 
-- 2023.07.19
+<br />
+
+## [0.3.2] - 2023.07.23
+
+### Changed
+
+- Style for count and stage state
+- CHANGELOG format
+- Webcam text and background
+
+## [0.3.1] - 2023.07.19
 
 ### Added
 
 - Options for workout type
 - Select workout type
 
-- 2023.07.18
+## [0.3.0] - 2023.07.18
 
 ### Added
 
 - TailwindCSS
 
-- 2023.07.17
+## [0.2.0] - 2023.07.17
 
 ### Added
 
 - React migration
 
-- 2023.07.16
+## [0.1.1] - 2023.07.16
 
 ### Added
 

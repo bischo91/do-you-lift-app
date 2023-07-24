@@ -61,23 +61,23 @@ export const getLandMarkIndex = (
 export const getBodyPoints = (landmark) => {
   return {
     left: {
-      shoulder:getLandMarkIndex(landmark).leftShoulder,
-      elbow:getLandMarkIndex(landmark).leftElbow,
-      wrist:getLandMarkIndex(landmark).leftWrist,
-      hip:getLandMarkIndex(landmark).leftHip,
-      knee:getLandMarkIndex(landmark).leftKnee,
-      ankle:getLandMarkIndex(landmark).leftAnkle
+      shoulder: getLandMarkIndex(landmark).leftShoulder,
+      elbow: getLandMarkIndex(landmark).leftElbow,
+      wrist: getLandMarkIndex(landmark).leftWrist,
+      hip: getLandMarkIndex(landmark).leftHip,
+      knee: getLandMarkIndex(landmark).leftKnee,
+      ankle: getLandMarkIndex(landmark).leftAnkle,
     },
     right: {
-      shoulder:getLandMarkIndex(landmark).rightShoulder,
+      shoulder: getLandMarkIndex(landmark).rightShoulder,
       elbow: getLandMarkIndex(landmark).rightElbow,
       wrist: getLandMarkIndex(landmark).rightWrist,
-      hip:getLandMarkIndex(landmark).rightHip,
-      knee:getLandMarkIndex(landmark).rightKnee,
-      ankle:getLandMarkIndex(landmark).rightAnkle
-    }
-  }
-}
+      hip: getLandMarkIndex(landmark).rightHip,
+      knee: getLandMarkIndex(landmark).rightKnee,
+      ankle: getLandMarkIndex(landmark).rightAnkle,
+    },
+  };
+};
 
 export const getAngles = (body) => {
   const leftArmAngle = calculateAngle(
@@ -94,11 +94,11 @@ export const getAngles = (body) => {
     [body.left.hip.x, body.left.hip.y],
     [body.left.knee.x, body.left.knee.y],
     [body.left.ankle.x, body.left.ankle.y]
-  )
+  );
   const rightLegAngle = calculateAngle(
     [body.right.hip.x, body.right.hip.y],
     [body.right.knee.x, body.right.knee.y],
     [body.right.ankle.x, body.right.ankle.y]
-  )
-  return {leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle}
-}
+  );
+  return { leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle };
+};
