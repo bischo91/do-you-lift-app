@@ -1,6 +1,6 @@
 {
   "name": "do-you-lift-app",
-  "version": "1.0.0",
+  "version": "0.3.2",
   "private": true,
   "scripts": {
     "start": "react-scripts start",
