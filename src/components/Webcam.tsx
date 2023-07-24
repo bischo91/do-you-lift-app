@@ -12,6 +12,7 @@ export const Webcam = ({workoutOption}) => {
   const canvasRef = useRef(null);
   const divRef = useRef(null);
   const workoutRef = useRef(null)
+  let [buttonText, setButtonText] = useState("Start")
   useEffect(() => {
     let leftCount = 0
     let rightCount = 0
@@ -41,6 +42,7 @@ export const Webcam = ({workoutOption}) => {
     };
     // Enable the live webcam view and start detection.
     const enableCam = () => {
+      setButtonText("Loading...")
       if (!poseLandmarker) {
         console.log("Wait! poseLandmaker not loaded yet.");
         return;
@@ -131,7 +133,7 @@ export const Webcam = ({workoutOption}) => {
               canvasCtx.fillText(`Reps: ${rightCount}`, 220, 15);
             } else if (currentWorkout === 'squat') {
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-              if (leftLegAngle > 160 && rightLegAngle > 160 && leftStage === "down") {
+              if (leftLegAngle > 150 && rightLegAngle > 150 && leftStage === "down") {
                 leftStage='up'
                 leftCount++
               }
@@ -156,7 +158,7 @@ export const Webcam = ({workoutOption}) => {
               canvasCtx.fillText(`Reps: ${leftCount}`, 10, 15);              
             } else if (currentWorkout === 'benchPress') {
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-              if (leftArmAngle > 160 && rightArmAngle > 160 && leftStage === "down") {
+              if (leftArmAngle > 150 && rightArmAngle > 150 && leftStage === "down") {
                 leftStage='up'
                 leftCount++
               }
@@ -202,7 +204,8 @@ export const Webcam = ({workoutOption}) => {
       }
 
       // Call this function again to keep predicting when the browser is ready.
-      if (webcamRunning === true) {      
+      if (webcamRunning === true) {     
+        setButtonText("Reset")
         window.requestAnimationFrame(predictWebcam);
 
         // setRightCounter(rightCount)
@@ -217,18 +220,26 @@ export const Webcam = ({workoutOption}) => {
     <div>
     <div>
     <button id="webcamButton" className="p-3 bg-gray-400 rounded-lg">
-        <span className="">Start </span>
+        <span className="">{buttonText}</span>
     </button>
     </div>
     <span ref={workoutRef}>{workoutOption?.value}</span>
     <div className="inline-flex w-full">
       <div className="flex-col w-full ml-0 space-y-2">
-        <span>{renderCountStage.leftStage}</span>
-        <span>{renderCountStage.leftCount}</span>
+        <div className="text-4xl">
+        <span className="text-">{renderCountStage.leftStage.toUpperCase()}</span>
+        </div>
+        <div className="text-4xl">
+        <span className="text-right">{renderCountStage.leftCount}</span>
+        </div>
       </div>
       <div className="flex-col w-full mr-0 space-y-2">
-        <span>{renderCountStage.rightStage}</span>
+      <div className="text-4xl">
+        <span>{renderCountStage.rightStage.toUpperCase()}</span>
+      </div>
+      <div className="text-4xl">
         <span>{renderCountStage.rightCount}</span>
+      </div>
       </div>
     </div>
     <div style={{ position: "relative", margin: "10px" }} ref={divRef}>
