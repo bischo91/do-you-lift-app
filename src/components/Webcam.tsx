@@ -4,7 +4,13 @@ import {
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
 import React, { useEffect, useRef, useState } from "react";
-import { getAngles, getBodyPoints } from "../utils";
+import {
+  getAngles,
+  getBodyPoints,
+  oneSideWorkout,
+  showAngles,
+  twoSideWorkout,
+} from "../utils";
 
 export const Webcam = ({ workoutOption }) => {
   const [renderCountStage, setRenderCountStage] = useState({
@@ -21,8 +27,8 @@ export const Webcam = ({ workoutOption }) => {
   useEffect(() => {
     let leftCount = 0;
     let rightCount = 0;
-    let leftStage = "";
-    let rightStage = "";
+    let leftStage: "down" | "up" = "down";
+    let rightStage: "down" | "up" = "down";
 
     let poseLandmarker: PoseLandmarker | undefined = undefined;
     let initialize = true;
@@ -86,6 +92,10 @@ export const Webcam = ({ workoutOption }) => {
 
     let lastVideoTime = -1;
     let currentWorkout;
+    let leftArmAngle = 0;
+    let rightArmAngle = 0;
+    let leftLegAngle = 0;
+    let rightLegAngle = 0;
     const predictWebcam = async () => {
       if (currentWorkout !== workoutRef.current.innerHTML) {
         currentWorkout = workoutRef.current.innerHTML;
@@ -103,98 +113,68 @@ export const Webcam = ({ workoutOption }) => {
         initialize = false;
       }
       let startTimeMs = performance.now();
+
       if (lastVideoTime !== video.currentTime) {
         lastVideoTime = video.currentTime;
         poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
           canvasCtx.save();
+          canvasCtx.font = "8px Arial";
           for (let landmark of result.landmarks) {
             const body = getBodyPoints(landmark);
-            const { leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle } =
-              getAngles(body);
+            const angles = getAngles(body);
+            if (Math.abs(angles.leftArmAngle - leftArmAngle) > 7) {
+              leftArmAngle = Math.round(angles.leftArmAngle / 10) * 10;
+            }
+            rightArmAngle = getAngles(body).rightArmAngle;
+            leftLegAngle = getAngles(body).leftLegAngle;
+            rightLegAngle = getAngles(body).rightLegAngle;
 
-            canvasCtx.font = "8px Arial";
-
+            canvasElement
+              .getContext("2d")
+              .clearRect(0, 0, canvasElement.width, canvasElement.height);
             if (currentWorkout === "armCurl") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
+              showAngles(canvasElement, "left", leftArmAngle);
+              showAngles(canvasElement, "right", rightArmAngle);
+              const threshold = { down: 120, up: 45 };
+              const result = twoSideWorkout(
+                threshold,
+                leftArmAngle,
+                leftStage,
+                leftCount,
+                rightArmAngle,
+                rightStage,
+                rightCount
               );
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(8, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 12, 9);
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(221, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 225, 9);
-              if (leftArmAngle > 120) {
-                leftStage = "down";
-              }
-              if (leftArmAngle < 45 && leftStage === "down") {
-                leftStage = "up";
-                leftCount++;
-              }
-              if (rightArmAngle > 120) {
-                rightStage = "down";
-              }
-              if (rightArmAngle < 45 && rightStage === "down") {
-                rightStage = "up";
-                rightCount++;
-              }
+              leftStage = result.leftStage;
+              leftCount = result.leftCount;
+              rightStage = result.rightStage;
+              rightCount = result.rightCount;
             } else if (currentWorkout === "squat") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
+              showAngles(canvasElement, "left", leftLegAngle);
+              showAngles(canvasElement, "right", rightLegAngle);
+              const threshold = { down: 100, up: 150 };
+              const result = oneSideWorkout(
+                threshold,
+                leftLegAngle,
+                leftStage,
+                leftCount,
+                rightLegAngle
               );
-              if (
-                leftLegAngle > 150 &&
-                rightLegAngle > 150 &&
-                leftStage === "down"
-              ) {
-                leftStage = "up";
-                leftCount++;
-              }
-              if (leftLegAngle < 100 && rightLegAngle < 100) {
-                leftStage = "down";
-              }
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(8, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${leftLegAngle.toFixed(0)}`, 12, 9);
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(221, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${rightLegAngle.toFixed(0)}`, 225, 9);
+              leftStage = result.leftStage;
+              leftCount = result.leftCount;
             } else if (currentWorkout === "benchPress") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
+              showAngles(canvasElement, "left", leftArmAngle);
+              showAngles(canvasElement, "right", rightArmAngle);
+              const threshold = { down: 50, up: 120 };
+              const result = oneSideWorkout(
+                threshold,
+                leftArmAngle,
+                leftStage,
+                leftCount,
+                rightArmAngle
               );
-              if (
-                leftArmAngle > 150 &&
-                rightArmAngle > 150 &&
-                leftStage === "down"
-              ) {
-                leftStage = "up";
-                leftCount++;
-              }
-              if (leftArmAngle < 50 && rightArmAngle < 50) {
-                leftStage = "down";
-              }
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(8, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 12, 9);
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(221, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 225, 9);
+              leftStage = result.leftStage;
+              leftCount = result.leftCount;
             } else if (currentWorkout === "demo") {
               canvasCtx.clearRect(
                 0,
@@ -380,7 +360,7 @@ export const Webcam = ({ workoutOption }) => {
           <div className="flex-col w-full ml-0 space-y-2">
             <div className="text-4xl">
               <span className="text-">
-                {renderCountStage.leftStage.toUpperCase()}
+                {renderCountStage.leftStage?.toUpperCase()}
               </span>
             </div>
             <div className="text-4xl">
@@ -391,7 +371,7 @@ export const Webcam = ({ workoutOption }) => {
         {buttonText === "Reset" && workoutOption?.value === "armCurl" && (
           <div className="flex-col w-full mr-0 space-y-2">
             <div className="text-4xl">
-              <span>{renderCountStage.rightStage.toUpperCase()}</span>
+              <span>{renderCountStage.rightStage?.toUpperCase()}</span>
             </div>
             <div className="text-4xl">
               <span>{renderCountStage.rightCount}</span>

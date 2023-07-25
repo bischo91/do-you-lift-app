@@ -102,3 +102,78 @@ export const getAngles = (body) => {
   );
   return { leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle };
 };
+export const showAngles = (
+  canvasElement: HTMLCanvasElement,
+  side: "left" | "right",
+  angle
+) => {
+  const canvasContext = canvasElement.getContext("2d");
+  switch (side) {
+    case "left":
+      canvasContext.fillStyle = "white";
+      canvasContext.fillRect(8, 2, 50, 10);
+      canvasContext.fillStyle = "black";
+      canvasContext.fillText(`Angle: ${angle.toFixed(0)}`, 12, 9);
+      break;
+    case "right":
+      canvasContext.fillStyle = "white";
+      canvasContext.fillRect(221, 2, 50, 10);
+      canvasContext.fillStyle = "black";
+      canvasContext.fillText(`Angle: ${angle.toFixed(0)}`, 225, 9);
+      break;
+    default:
+      canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasContext.fillStyle = "white";
+      canvasContext.fillRect(8, 2, 50, 10);
+      canvasContext.fillStyle = "black";
+      canvasContext.fillText(`Angle: ${angle.toFixed(0)}`, 12, 9);
+      break;
+  }
+};
+export const twoSideWorkout = (
+  threshold: { down: number; up: number },
+  leftAngle: number,
+  leftStage: "up" | "down",
+  leftCount: number,
+  rightAngle: number,
+  rightStage: "up" | "down",
+  rightCount: number
+) => {
+  if (leftAngle > threshold.down) {
+    leftStage = "down";
+  }
+  if (leftAngle < threshold.up && leftStage === "down") {
+    leftStage = "up";
+    leftCount++;
+  }
+  if (rightAngle > threshold.down) {
+    rightStage = "down";
+  }
+  if (rightAngle < threshold.up && rightStage === "down") {
+    rightStage = "up";
+    rightCount++;
+  }
+
+  return { leftStage, leftCount, rightStage, rightCount };
+};
+
+export const oneSideWorkout = (
+  threshold: { down: number; up: number },
+  leftAngle: number,
+  leftStage: "up" | "down",
+  leftCount: number,
+  rightAngle: number
+) => {
+  if (
+    leftAngle > threshold.up &&
+    rightAngle > threshold.up &&
+    leftStage === "down"
+  ) {
+    leftStage = "up";
+    leftCount++;
+  }
+  if (leftAngle < threshold.down && rightAngle < threshold.down) {
+    leftStage = "down";
+  }
+  return { leftStage, leftCount };
+};
