@@ -5,10 +5,12 @@ import {
 } from "@mediapipe/tasks-vision";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  discretizeAngle,
   getAngles,
   getBodyPoints,
   oneSideWorkout,
   showAngles,
+  showDemo,
   twoSideWorkout,
 } from "../utils";
 
@@ -23,7 +25,7 @@ export const Webcam = ({ workoutOption }) => {
   const canvasRef = useRef(null);
   const divRef = useRef(null);
   const workoutRef = useRef(null);
-  let [buttonText, setButtonText] = useState("Start");
+  const [buttonText, setButtonText] = useState("Start");
   useEffect(() => {
     let leftCount = 0;
     let rightCount = 0;
@@ -77,7 +79,19 @@ export const Webcam = ({ workoutOption }) => {
     const drawingUtils = new DrawingUtils(canvasCtx);
 
     const handleResize = () => {
-      canvasElement.style.height = video.offsetHeight.toString() + "px";
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        const cameraAspectRatio = stream
+          .getVideoTracks()[0]
+          .getSettings().aspectRatio;
+        const videoHeight = video.offsetHeight;
+        const videoWidth = video.offsetWidth;
+        const videoActualWidth = videoHeight * cameraAspectRatio;
+        const margin = Math.abs(videoActualWidth - videoWidth) / 2;
+        canvasElement.style.height = video.offsetHeight.toString() + "px";
+        canvasElement.style.width =
+          Math.round(video.offsetHeight * cameraAspectRatio).toString() + "px";
+        canvasElement.style.left = Math.round(margin).toString() + "px";
+      });
     };
     window.addEventListener("resize", handleResize);
 
@@ -122,12 +136,17 @@ export const Webcam = ({ workoutOption }) => {
           for (let landmark of result.landmarks) {
             const body = getBodyPoints(landmark);
             const angles = getAngles(body);
-            if (Math.abs(angles.leftArmAngle - leftArmAngle) > 7) {
-              leftArmAngle = Math.round(angles.leftArmAngle / 10) * 10;
-            }
-            rightArmAngle = getAngles(body).rightArmAngle;
-            leftLegAngle = getAngles(body).leftLegAngle;
-            rightLegAngle = getAngles(body).rightLegAngle;
+
+            leftArmAngle = discretizeAngle(leftArmAngle, angles.leftArmAngle);
+            rightArmAngle = discretizeAngle(
+              rightArmAngle,
+              angles.rightArmAngle
+            );
+            leftLegAngle = discretizeAngle(leftLegAngle, angles.leftLegAngle);
+            rightLegAngle = discretizeAngle(
+              rightLegAngle,
+              angles.rightLegAngle
+            );
 
             canvasElement
               .getContext("2d")
@@ -176,140 +195,148 @@ export const Webcam = ({ workoutOption }) => {
               leftStage = result.leftStage;
               leftCount = result.leftCount;
             } else if (currentWorkout === "demo") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
+              showDemo(
+                canvasElement,
+                body,
+                leftArmAngle,
+                leftLegAngle,
+                rightArmAngle,
+                rightLegAngle
               );
-              canvasCtx.fillText(
-                `left arm angle: ${leftArmAngle.toFixed(0)}`,
-                10,
-                7
-              );
-              canvasCtx.fillText(
-                `left leg angle: ${leftLegAngle.toFixed(0)}`,
-                10,
-                17
-              );
-              canvasCtx.fillText(
-                `left wrist: (${body.left.wrist.x.toFixed(
-                  2
-                )}, ${body.left.wrist.y.toFixed(
-                  2
-                )}, ${body.left.wrist.z.toFixed(2)})`,
-                10,
-                27
-              );
-              canvasCtx.fillText(
-                `left elbow: (${body.left.elbow.x.toFixed(
-                  2
-                )}, ${body.left.elbow.y.toFixed(
-                  2
-                )}, ${body.left.elbow.z.toFixed(2)})`,
-                10,
-                37
-              );
-              canvasCtx.fillText(
-                `left shoulder: (${body.left.shoulder.x.toFixed(
-                  2
-                )}, ${body.left.shoulder.y.toFixed(
-                  2
-                )}, ${body.left.shoulder.z.toFixed(2)})`,
-                10,
-                47
-              );
-              canvasCtx.fillText(
-                `left hip: (${body.left.hip.x.toFixed(
-                  2
-                )}, ${body.left.hip.y.toFixed(2)}, ${body.left.hip.z.toFixed(
-                  2
-                )})`,
-                10,
-                57
-              );
-              canvasCtx.fillText(
-                `left knee: (${body.left.knee.x.toFixed(
-                  2
-                )}, ${body.left.knee.y.toFixed(2)}, ${body.left.knee.z.toFixed(
-                  2
-                )})`,
-                10,
-                67
-              );
-              canvasCtx.fillText(
-                `left ankle: (${body.left.ankle.x.toFixed(
-                  2
-                )}, ${body.left.ankle.y.toFixed(
-                  2
-                )}, ${body.left.ankle.z.toFixed(2)})`,
-                10,
-                77
-              );
-              canvasCtx.fillText(
-                `right arm angle: ${rightArmAngle.toFixed(0)}`,
-                200,
-                7
-              );
-              canvasCtx.fillText(
-                `right leg angle: ${rightLegAngle.toFixed(0)}`,
-                200,
-                17
-              );
-              canvasCtx.fillText(
-                `right wrist: (${body.right.wrist.x.toFixed(
-                  2
-                )}, ${body.right.wrist.y.toFixed(
-                  2
-                )}, ${body.right.wrist.z.toFixed(2)})`,
-                200,
-                27
-              );
-              canvasCtx.fillText(
-                `right elbow: (${body.right.elbow.x.toFixed(
-                  2
-                )}, ${body.right.elbow.y.toFixed(
-                  2
-                )}, ${body.right.elbow.z.toFixed(2)})`,
-                200,
-                37
-              );
-              canvasCtx.fillText(
-                `right shoulder: (${body.right.shoulder.x.toFixed(
-                  2
-                )}, ${body.right.shoulder.y.toFixed(
-                  2
-                )}, ${body.right.shoulder.z.toFixed(2)})`,
-                200,
-                47
-              );
-              canvasCtx.fillText(
-                `right hip: (${body.right.hip.x.toFixed(
-                  2
-                )}, ${body.right.hip.y.toFixed(2)}, ${body.right.hip.z.toFixed(
-                  2
-                )})`,
-                200,
-                57
-              );
-              canvasCtx.fillText(
-                `right knee: (${body.right.knee.x.toFixed(
-                  2
-                )}, ${body.right.knee.y.toFixed(
-                  2
-                )}, ${body.right.knee.z.toFixed(2)})`,
-                200,
-                67
-              );
-              canvasCtx.fillText(
-                `right ankle: (${body.right.ankle.x.toFixed(
-                  2
-                )}, ${body.right.ankle.y.toFixed(
-                  2
-                )}, ${body.right.ankle.z.toFixed(2)})`,
-                200,
-                77
-              );
+              // canvasCtx.clearRect(
+              //   0,
+              //   0,
+              //   canvasElement.width,
+              //   canvasElement.height
+              // );
+              // canvasCtx.fillText(
+              //   `left arm angle: ${leftArmAngle.toFixed(0)}`,
+              //   10,
+              //   7
+              // );
+              // canvasCtx.fillText(
+              //   `left leg angle: ${leftLegAngle.toFixed(0)}`,
+              //   10,
+              //   17
+              // );
+              // canvasCtx.fillText(
+              //   `left wrist: (${body.left.wrist.x.toFixed(
+              //     2
+              //   )}, ${body.left.wrist.y.toFixed(
+              //     2
+              //   )}, ${body.left.wrist.z.toFixed(2)})`,
+              //   10,
+              //   27
+              // );
+              // canvasCtx.fillText(
+              //   `left elbow: (${body.left.elbow.x.toFixed(
+              //     2
+              //   )}, ${body.left.elbow.y.toFixed(
+              //     2
+              //   )}, ${body.left.elbow.z.toFixed(2)})`,
+              //   10,
+              //   37
+              // );
+              // canvasCtx.fillText(
+              //   `left shoulder: (${body.left.shoulder.x.toFixed(
+              //     2
+              //   )}, ${body.left.shoulder.y.toFixed(
+              //     2
+              //   )}, ${body.left.shoulder.z.toFixed(2)})`,
+              //   10,
+              //   47
+              // );
+              // canvasCtx.fillText(
+              //   `left hip: (${body.left.hip.x.toFixed(
+              //     2
+              //   )}, ${body.left.hip.y.toFixed(2)}, ${body.left.hip.z.toFixed(
+              //     2
+              //   )})`,
+              //   10,
+              //   57
+              // );
+              // canvasCtx.fillText(
+              //   `left knee: (${body.left.knee.x.toFixed(
+              //     2
+              //   )}, ${body.left.knee.y.toFixed(2)}, ${body.left.knee.z.toFixed(
+              //     2
+              //   )})`,
+              //   10,
+              //   67
+              // );
+              // canvasCtx.fillText(
+              //   `left ankle: (${body.left.ankle.x.toFixed(
+              //     2
+              //   )}, ${body.left.ankle.y.toFixed(
+              //     2
+              //   )}, ${body.left.ankle.z.toFixed(2)})`,
+              //   10,
+              //   77
+              // );
+              // canvasCtx.fillText(
+              //   `right arm angle: ${rightArmAngle.toFixed(0)}`,
+              //   200,
+              //   7
+              // );
+              // canvasCtx.fillText(
+              //   `right leg angle: ${rightLegAngle.toFixed(0)}`,
+              //   200,
+              //   17
+              // );
+              // canvasCtx.fillText(
+              //   `right wrist: (${body.right.wrist.x.toFixed(
+              //     2
+              //   )}, ${body.right.wrist.y.toFixed(
+              //     2
+              //   )}, ${body.right.wrist.z.toFixed(2)})`,
+              //   200,
+              //   27
+              // );
+              // canvasCtx.fillText(
+              //   `right elbow: (${body.right.elbow.x.toFixed(
+              //     2
+              //   )}, ${body.right.elbow.y.toFixed(
+              //     2
+              //   )}, ${body.right.elbow.z.toFixed(2)})`,
+              //   200,
+              //   37
+              // );
+              // canvasCtx.fillText(
+              //   `right shoulder: (${body.right.shoulder.x.toFixed(
+              //     2
+              //   )}, ${body.right.shoulder.y.toFixed(
+              //     2
+              //   )}, ${body.right.shoulder.z.toFixed(2)})`,
+              //   200,
+              //   47
+              // );
+              // canvasCtx.fillText(
+              //   `right hip: (${body.right.hip.x.toFixed(
+              //     2
+              //   )}, ${body.right.hip.y.toFixed(2)}, ${body.right.hip.z.toFixed(
+              //     2
+              //   )})`,
+              //   200,
+              //   57
+              // );
+              // canvasCtx.fillText(
+              //   `right knee: (${body.right.knee.x.toFixed(
+              //     2
+              //   )}, ${body.right.knee.y.toFixed(
+              //     2
+              //   )}, ${body.right.knee.z.toFixed(2)})`,
+              //   200,
+              //   67
+              // );
+              // canvasCtx.fillText(
+              //   `right ankle: (${body.right.ankle.x.toFixed(
+              //     2
+              //   )}, ${body.right.ankle.y.toFixed(
+              //     2
+              //   )}, ${body.right.ankle.z.toFixed(2)})`,
+              //   200,
+              //   77
+              // );
             }
 
             drawingUtils.drawLandmarks(landmark, {
@@ -388,6 +415,7 @@ export const Webcam = ({ workoutOption }) => {
             top: "0px",
             width: "100%",
             height: "auto",
+            maxHeight: "70vh",
           }}
           autoPlay
           playsInline
@@ -399,6 +427,7 @@ export const Webcam = ({ workoutOption }) => {
             left: "0px",
             top: "0px",
             width: "100%",
+            maxHeight: "70vh",
           }}
         ></canvas>
         <script src="built/index.js"></script>
