@@ -113,26 +113,40 @@ export const showAngles = (
   side: "left" | "right",
   angle
 ) => {
+  const width = canvasElement.getBoundingClientRect().width;
+  const height = canvasElement.getBoundingClientRect().height;
   const canvasContext = canvasElement.getContext("2d");
   switch (side) {
     case "left":
-      canvasContext.fillStyle = "white";
-      canvasContext.fillRect(8, 2, 50, 10);
+      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
       canvasContext.fillStyle = "black";
-      canvasContext.fillText(`Angle: ${angle.toFixed(0)}`, 12, 9);
+      canvasContext.fillRect(0, 0, width / 6, height / 12);
+      canvasContext.fillStyle = "white";
+      canvasContext.fillText(
+        `Angle: ${angle.toFixed(0)}\u00B0`,
+        (0.125 * width) / 6,
+        (1.25 * height) / 24
+      );
       break;
     case "right":
-      canvasContext.fillStyle = "white";
-      canvasContext.fillRect(242, 2, 50, 10);
+      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
       canvasContext.fillStyle = "black";
-      canvasContext.fillText(`Angle: ${angle.toFixed(0)}`, 246, 9);
+      canvasContext.fillRect((5 * width) / 6, 0, width / 6, height / 12);
+      canvasContext.fillStyle = "white";
+      canvasContext.fillText(
+        `Angle: ${angle.toFixed(0)}\u00B0`,
+        (5.125 * width) / 6,
+        (1.25 * height) / 24
+      );
       break;
     default:
-      canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasContext.fillRect(0, 0, width / 6, height / 12);
       canvasContext.fillStyle = "white";
-      canvasContext.fillRect(8, 2, 50, 10);
-      canvasContext.fillStyle = "black";
-      canvasContext.fillText(`Angle: ${angle.toFixed(0)}`, 12, 9);
+      canvasContext.fillText(
+        `Angle: ${angle.toFixed(0)}\u00B0`,
+        (0.125 * width) / 6,
+        (1.25 * height) / 24
+      );
       break;
   }
 };
@@ -192,12 +206,9 @@ export const showDemo = (
   rightArmAngle,
   rightLegAngle
 ) => {
+  const canvasContext = canvasElement.getContext("2d");
   const width = canvasElement.getBoundingClientRect().width;
   const height = canvasElement.getBoundingClientRect().height;
-  canvasElement.width = width;
-  canvasElement.height = height;
-  const canvasContext = canvasElement.getContext("2d");
-
   const textHeight = height / 9 / 3;
   canvasContext.font = `${Math.round(height / 40).toString()}px Arial`;
   canvasContext.fillStyle = "black";
