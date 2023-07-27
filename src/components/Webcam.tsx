@@ -4,7 +4,15 @@ import {
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
 import React, { useEffect, useRef, useState } from "react";
-import { getAngles, getBodyPoints } from "../utils";
+import {
+  discretizeAngle,
+  getAngles,
+  getBodyPoints,
+  oneSideWorkout,
+  showAngles,
+  showDemo,
+  twoSideWorkout,
+} from "../utils";
 
 export const Webcam = ({ workoutOption }) => {
   const [renderCountStage, setRenderCountStage] = useState({
@@ -17,12 +25,19 @@ export const Webcam = ({ workoutOption }) => {
   const canvasRef = useRef(null);
   const divRef = useRef(null);
   const workoutRef = useRef(null);
-  let [buttonText, setButtonText] = useState("Start");
+  const [buttonText, setButtonText] = useState("Start");
+  const [isWebcamRunning, setIsWebcamRunning] = useState(false);
+  let downloadUrl;
+  // const startRecord = (canvasElement) => {
+
+  // };
+
   useEffect(() => {
     let leftCount = 0;
     let rightCount = 0;
-    let leftStage = "";
-    let rightStage = "";
+    let leftStage: "down" | "up" = "down";
+    let rightStage: "down" | "up" = "down";
+    let chunks = [];
 
     let poseLandmarker: PoseLandmarker | undefined = undefined;
     let initialize = true;
@@ -53,25 +68,77 @@ export const Webcam = ({ workoutOption }) => {
         return;
       }
 
-      if (!webcamRunning) webcamRunning = true;
+      if (!webcamRunning || !isWebcamRunning) {
+        webcamRunning = true;
+        setIsWebcamRunning(true);
+      }
 
-      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-        leftCount = 0;
-        rightCount = 0;
-        // Activate the webcam stream.
-        video.srcObject = stream;
-        video.addEventListener("loadeddata", predictWebcam);
-      });
+      // define below and use it
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: false })
+        .then((stream) => {
+          leftCount = 0;
+          rightCount = 0;
+
+          // Activate the webcam stream.
+          const recordButton = document.getElementById("startRecording");
+          const stopButton = document.getElementById("stopRecording");
+          const videoStream = canvasRef.current.captureStream(30);
+          const mixed = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...stream.getVideoTracks(),
+          ]);
+          mediaRecorder = new MediaRecorder(mixed);
+          mediaRecorder.ondataavailable = (e) => {
+            chunks.push(e.data);
+          };
+          recordButton.addEventListener("click", () => mediaRecorder.start());
+
+          if (recordButton && stopButton) {
+            stopButton.addEventListener("click", () => mediaRecorder.stop());
+            mediaRecorder.onstop = (e) => {
+              const blob = new Blob(chunks, { type: "video/mp4" });
+              const videoURL = URL.createObjectURL(blob);
+              videoRef.current.src = videoURL;
+              const aDownload: any = document.getElementById("download");
+              aDownload.href = videoURL;
+              aDownload.download = "video_test.mp4";
+              // aDownload.textContent = aDownload.download;
+              console.log(videoURL);
+              chunks = [];
+            };
+          }
+          video.srcObject = stream;
+          video.addEventListener("loadeddata", predictWebcam);
+        });
     };
 
     createPoseLandmarker();
     let video = videoRef.current;
+    let mediaRecorder;
     const canvasElement = canvasRef.current;
     const canvasCtx = canvasElement.getContext("2d");
     const drawingUtils = new DrawingUtils(canvasCtx);
 
+    console.log(chunks);
+
     const handleResize = () => {
-      canvasElement.style.height = video.offsetHeight.toString() + "px";
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: false })
+        .then((stream) => {
+          const cameraAspectRatio = stream
+            .getVideoTracks()[0]
+            .getSettings().aspectRatio;
+          const videoHeight = video.offsetHeight;
+          const videoWidth = video.offsetWidth;
+          const videoActualWidth = videoHeight * cameraAspectRatio;
+          const margin = Math.abs(videoActualWidth - videoWidth) / 2;
+          canvasElement.style.height = video.offsetHeight.toString() + "px";
+          canvasElement.style.width =
+            Math.round(video.offsetHeight * cameraAspectRatio).toString() +
+            "px";
+          canvasElement.style.left = Math.round(margin).toString() + "px";
+        });
     };
     window.addEventListener("resize", handleResize);
 
@@ -86,7 +153,24 @@ export const Webcam = ({ workoutOption }) => {
 
     let lastVideoTime = -1;
     let currentWorkout;
+    let leftArmAngle = 0;
+    let rightArmAngle = 0;
+    let leftLegAngle = 0;
+    let rightLegAngle = 0;
+
+    const drawOnCanvas = () => {
+      canvasElement
+        .getContext("2d")
+        .drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+      requestAnimationFrame(drawOnCanvas);
+    };
     const predictWebcam = async () => {
+      const resetButton = document.getElementById("resetButton");
+      if (resetButton)
+        resetButton.addEventListener("click", () => {
+          leftCount = 0;
+          rightCount = 0;
+        });
       if (currentWorkout !== workoutRef.current.innerHTML) {
         currentWorkout = workoutRef.current.innerHTML;
         leftCount = 0;
@@ -101,234 +185,97 @@ export const Webcam = ({ workoutOption }) => {
         });
         handleResize();
         initialize = false;
+        canvasElement
+          .getContext("2d")
+          .clearRect(0, 0, canvasElement.width, canvasElement.height);
       }
       let startTimeMs = performance.now();
+
       if (lastVideoTime !== video.currentTime) {
         lastVideoTime = video.currentTime;
         poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
           canvasCtx.save();
+          canvasCtx.font = "8px Arial";
+
           for (let landmark of result.landmarks) {
             const body = getBodyPoints(landmark);
-            const { leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle } =
-              getAngles(body);
+            const angles = getAngles(body);
 
-            canvasCtx.font = "8px Arial";
+            leftArmAngle = discretizeAngle(leftArmAngle, angles.leftArmAngle);
+            rightArmAngle = discretizeAngle(
+              rightArmAngle,
+              angles.rightArmAngle
+            );
+            leftLegAngle = discretizeAngle(leftLegAngle, angles.leftLegAngle);
+            rightLegAngle = discretizeAngle(
+              rightLegAngle,
+              angles.rightLegAngle
+            );
+            const width = canvasElement.getBoundingClientRect().width;
+            const height = canvasElement.getBoundingClientRect().height;
+            canvasElement.width = width;
+            canvasElement.height = height;
 
+            canvasCtx.drawImage(
+              video,
+              0,
+              0,
+              canvasElement.width,
+              canvasElement.height
+            );
+            drawOnCanvas();
+            // video.style = "display:hidden";
             if (currentWorkout === "armCurl") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
+              showAngles(canvasElement, "left", leftArmAngle);
+              showAngles(canvasElement, "right", rightArmAngle);
+              const threshold = { down: 120, up: 45 };
+              const result = twoSideWorkout(
+                threshold,
+                leftArmAngle,
+                leftStage,
+                leftCount,
+                rightArmAngle,
+                rightStage,
+                rightCount
               );
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(8, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 12, 9);
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(221, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 225, 9);
-              if (leftArmAngle > 120) {
-                leftStage = "down";
-              }
-              if (leftArmAngle < 45 && leftStage === "down") {
-                leftStage = "up";
-                leftCount++;
-              }
-              if (rightArmAngle > 120) {
-                rightStage = "down";
-              }
-              if (rightArmAngle < 45 && rightStage === "down") {
-                rightStage = "up";
-                rightCount++;
-              }
+              leftStage = result.leftStage;
+              leftCount = result.leftCount;
+              rightStage = result.rightStage;
+              rightCount = result.rightCount;
             } else if (currentWorkout === "squat") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
+              showAngles(canvasElement, "left", leftLegAngle);
+              showAngles(canvasElement, "right", rightLegAngle);
+              const threshold = { down: 100, up: 150 };
+              const result = oneSideWorkout(
+                threshold,
+                leftLegAngle,
+                leftStage,
+                leftCount,
+                rightLegAngle
               );
-              if (
-                leftLegAngle > 150 &&
-                rightLegAngle > 150 &&
-                leftStage === "down"
-              ) {
-                leftStage = "up";
-                leftCount++;
-              }
-              if (leftLegAngle < 100 && rightLegAngle < 100) {
-                leftStage = "down";
-              }
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(8, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${leftLegAngle.toFixed(0)}`, 12, 9);
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(221, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${rightLegAngle.toFixed(0)}`, 225, 9);
+              leftStage = result.leftStage;
+              leftCount = result.leftCount;
             } else if (currentWorkout === "benchPress") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
+              showAngles(canvasElement, "left", leftArmAngle);
+              showAngles(canvasElement, "right", rightArmAngle);
+              const threshold = { down: 50, up: 120 };
+              const result = oneSideWorkout(
+                threshold,
+                leftArmAngle,
+                leftStage,
+                leftCount,
+                rightArmAngle
               );
-              if (
-                leftArmAngle > 150 &&
-                rightArmAngle > 150 &&
-                leftStage === "down"
-              ) {
-                leftStage = "up";
-                leftCount++;
-              }
-              if (leftArmAngle < 50 && rightArmAngle < 50) {
-                leftStage = "down";
-              }
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(8, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${leftArmAngle.toFixed(0)}`, 12, 9);
-              canvasCtx.fillStyle = "white";
-              canvasCtx.fillRect(221, 2, 50, 10);
-              canvasCtx.fillStyle = "black";
-              canvasCtx.fillText(`Angle: ${rightArmAngle.toFixed(0)}`, 225, 9);
+              leftStage = result.leftStage;
+              leftCount = result.leftCount;
             } else if (currentWorkout === "demo") {
-              canvasCtx.clearRect(
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
-              );
-              canvasCtx.fillText(
-                `left arm angle: ${leftArmAngle.toFixed(0)}`,
-                10,
-                7
-              );
-              canvasCtx.fillText(
-                `left leg angle: ${leftLegAngle.toFixed(0)}`,
-                10,
-                17
-              );
-              canvasCtx.fillText(
-                `left wrist: (${body.left.wrist.x.toFixed(
-                  2
-                )}, ${body.left.wrist.y.toFixed(
-                  2
-                )}, ${body.left.wrist.z.toFixed(2)})`,
-                10,
-                27
-              );
-              canvasCtx.fillText(
-                `left elbow: (${body.left.elbow.x.toFixed(
-                  2
-                )}, ${body.left.elbow.y.toFixed(
-                  2
-                )}, ${body.left.elbow.z.toFixed(2)})`,
-                10,
-                37
-              );
-              canvasCtx.fillText(
-                `left shoulder: (${body.left.shoulder.x.toFixed(
-                  2
-                )}, ${body.left.shoulder.y.toFixed(
-                  2
-                )}, ${body.left.shoulder.z.toFixed(2)})`,
-                10,
-                47
-              );
-              canvasCtx.fillText(
-                `left hip: (${body.left.hip.x.toFixed(
-                  2
-                )}, ${body.left.hip.y.toFixed(2)}, ${body.left.hip.z.toFixed(
-                  2
-                )})`,
-                10,
-                57
-              );
-              canvasCtx.fillText(
-                `left knee: (${body.left.knee.x.toFixed(
-                  2
-                )}, ${body.left.knee.y.toFixed(2)}, ${body.left.knee.z.toFixed(
-                  2
-                )})`,
-                10,
-                67
-              );
-              canvasCtx.fillText(
-                `left ankle: (${body.left.ankle.x.toFixed(
-                  2
-                )}, ${body.left.ankle.y.toFixed(
-                  2
-                )}, ${body.left.ankle.z.toFixed(2)})`,
-                10,
-                77
-              );
-              canvasCtx.fillText(
-                `right arm angle: ${rightArmAngle.toFixed(0)}`,
-                200,
-                7
-              );
-              canvasCtx.fillText(
-                `right leg angle: ${rightLegAngle.toFixed(0)}`,
-                200,
-                17
-              );
-              canvasCtx.fillText(
-                `right wrist: (${body.right.wrist.x.toFixed(
-                  2
-                )}, ${body.right.wrist.y.toFixed(
-                  2
-                )}, ${body.right.wrist.z.toFixed(2)})`,
-                200,
-                27
-              );
-              canvasCtx.fillText(
-                `right elbow: (${body.right.elbow.x.toFixed(
-                  2
-                )}, ${body.right.elbow.y.toFixed(
-                  2
-                )}, ${body.right.elbow.z.toFixed(2)})`,
-                200,
-                37
-              );
-              canvasCtx.fillText(
-                `right shoulder: (${body.right.shoulder.x.toFixed(
-                  2
-                )}, ${body.right.shoulder.y.toFixed(
-                  2
-                )}, ${body.right.shoulder.z.toFixed(2)})`,
-                200,
-                47
-              );
-              canvasCtx.fillText(
-                `right hip: (${body.right.hip.x.toFixed(
-                  2
-                )}, ${body.right.hip.y.toFixed(2)}, ${body.right.hip.z.toFixed(
-                  2
-                )})`,
-                200,
-                57
-              );
-              canvasCtx.fillText(
-                `right knee: (${body.right.knee.x.toFixed(
-                  2
-                )}, ${body.right.knee.y.toFixed(
-                  2
-                )}, ${body.right.knee.z.toFixed(2)})`,
-                200,
-                67
-              );
-              canvasCtx.fillText(
-                `right ankle: (${body.right.ankle.x.toFixed(
-                  2
-                )}, ${body.right.ankle.y.toFixed(
-                  2
-                )}, ${body.right.ankle.z.toFixed(2)})`,
-                200,
-                77
+              showDemo(
+                canvasElement,
+                body,
+                leftArmAngle,
+                leftLegAngle,
+                rightArmAngle,
+                rightLegAngle
               );
             }
 
@@ -357,47 +304,94 @@ export const Webcam = ({ workoutOption }) => {
       if (webcamRunning === true) {
         setButtonText("Reset");
         window.requestAnimationFrame(predictWebcam);
-
-        // setRightCounter(rightCount)
-        // setRightStage(rightStage)
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workoutOption]);
 
+  // const resetCount = () => {
+  //   return { leftCount: 0, rightCount: 0 };
+  // };
+
   return (
     <div>
-      <div>
-        <button id="webcamButton" className="p-3 bg-gray-400 rounded-lg">
+      <div className="w-1/12 m-auto">
+        <button
+          id="webcamButton"
+          className={`${
+            (isWebcamRunning || !workoutOption) && buttonText !== "Loading..."
+              ? "hidden"
+              : "block"
+          } w-full p-3 bg-gray-400 rounded-lg`}
+        >
           <span className="">{buttonText}</span>
         </button>
       </div>
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
-      <div className="inline-flex w-full">
-        {buttonText === "Reset" && workoutOption?.value !== "demo" && (
-          <div className="flex-col w-full ml-0 space-y-2">
-            <div className="text-4xl">
-              <span className="text-">
-                {renderCountStage.leftStage.toUpperCase()}
-              </span>
+      <div>
+        <div
+          className={`${
+            isWebcamRunning && buttonText !== "Loading..."
+              ? "inline-flex"
+              : "hidden"
+          } w-1/2 m-auto`}
+        >
+          <button
+            id="resetButton"
+            // onClick={() => setResetCount(true)}
+            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
+          >
+            Restart Count
+          </button>
+          <button
+            id="startRecording"
+            className="w-1/2 p-3 mx-2 bg-gray-400 rounded-lg"
+          >
+            R
+          </button>
+          <button
+            id="stopRecording"
+            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
+          >
+            S
+          </button>
+          <a
+            id="download"
+            href={downloadUrl}
+            // type="video"
+            download="test.mp4"
+          >
+            <button className="w-full p-3 mx-2 bg-gray-400 rounded-lg">
+              Download
+            </button>
+          </a>
+        </div>
+        <div className="inline-flex w-full">
+          {isWebcamRunning && workoutOption?.value !== "demo" && (
+            <div className="flex-col w-full ml-0 space-y-2">
+              <div className="text-4xl">
+                <span className="text-">
+                  {renderCountStage.leftStage?.toUpperCase()}
+                </span>
+              </div>
+              <div className="text-4xl">
+                <span>{renderCountStage.leftCount}</span>
+              </div>
             </div>
-            <div className="text-4xl">
-              <span>{renderCountStage.leftCount}</span>
+          )}
+          {isWebcamRunning && workoutOption?.value === "armCurl" && (
+            <div className="flex-col w-full mr-0 space-y-2">
+              <div className="text-4xl">
+                <span>{renderCountStage.rightStage?.toUpperCase()}</span>
+              </div>
+              <div className="text-4xl">
+                <span>{renderCountStage.rightCount}</span>
+              </div>
             </div>
-          </div>
-        )}
-        {buttonText === "Reset" && workoutOption?.value === "armCurl" && (
-          <div className="flex-col w-full mr-0 space-y-2">
-            <div className="text-4xl">
-              <span>{renderCountStage.rightStage.toUpperCase()}</span>
-            </div>
-            <div className="text-4xl">
-              <span>{renderCountStage.rightCount}</span>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       <div style={{ position: "relative", margin: "10px" }} ref={divRef}>
         <video
@@ -408,6 +402,7 @@ export const Webcam = ({ workoutOption }) => {
             top: "0px",
             width: "100%",
             height: "auto",
+            maxHeight: "75vh",
           }}
           autoPlay
           playsInline
@@ -419,6 +414,7 @@ export const Webcam = ({ workoutOption }) => {
             left: "0px",
             top: "0px",
             width: "100%",
+            maxHeight: "75vh",
           }}
         ></canvas>
         <script src="built/index.js"></script>

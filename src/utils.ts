@@ -16,6 +16,12 @@ export const calculateAngle = (
   return angle;
 };
 
+export const discretizeAngle = (prevAngle, currentAngle) => {
+  return Math.abs(currentAngle - prevAngle) > 7
+    ? Math.round(currentAngle / 10) * 10
+    : prevAngle;
+};
+
 export const getLandMarkIndex = (
   landmark: NormalizedLandmark[]
 ): { [key: string]: NormalizedLandmark } => {
@@ -101,4 +107,220 @@ export const getAngles = (body) => {
     [body.right.ankle.x, body.right.ankle.y]
   );
   return { leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle };
+};
+export const showAngles = (
+  canvasElement: HTMLCanvasElement,
+  side: "left" | "right",
+  angle
+) => {
+  const width = canvasElement.getBoundingClientRect().width;
+  const height = canvasElement.getBoundingClientRect().height;
+  const canvasContext = canvasElement.getContext("2d");
+  switch (side) {
+    case "left":
+      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
+      canvasContext.fillStyle = "black";
+      canvasContext.fillRect(0, 0, width / 6, height / 12);
+      canvasContext.fillStyle = "white";
+      canvasContext.fillText(
+        `Angle: ${angle.toFixed(0)}\u00B0`,
+        (0.125 * width) / 6,
+        (1.25 * height) / 24
+      );
+      break;
+    case "right":
+      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
+      canvasContext.fillStyle = "black";
+      canvasContext.fillRect((5 * width) / 6, 0, width / 6, height / 12);
+      canvasContext.fillStyle = "white";
+      canvasContext.fillText(
+        `Angle: ${angle.toFixed(0)}\u00B0`,
+        (5.125 * width) / 6,
+        (1.25 * height) / 24
+      );
+      break;
+    default:
+      canvasContext.fillRect(0, 0, width / 6, height / 12);
+      canvasContext.fillStyle = "white";
+      canvasContext.fillText(
+        `Angle: ${angle.toFixed(0)}\u00B0`,
+        (0.125 * width) / 6,
+        (1.25 * height) / 24
+      );
+      break;
+  }
+};
+export const twoSideWorkout = (
+  threshold: { down: number; up: number },
+  leftAngle: number,
+  leftStage: "up" | "down",
+  leftCount: number,
+  rightAngle: number,
+  rightStage: "up" | "down",
+  rightCount: number
+) => {
+  if (leftAngle > threshold.down) {
+    leftStage = "down";
+  }
+  if (leftAngle < threshold.up && leftStage === "down") {
+    leftStage = "up";
+    leftCount++;
+  }
+  if (rightAngle > threshold.down) {
+    rightStage = "down";
+  }
+  if (rightAngle < threshold.up && rightStage === "down") {
+    rightStage = "up";
+    rightCount++;
+  }
+
+  return { leftStage, leftCount, rightStage, rightCount };
+};
+
+export const oneSideWorkout = (
+  threshold: { down: number; up: number },
+  leftAngle: number,
+  leftStage: "up" | "down",
+  leftCount: number,
+  rightAngle: number
+) => {
+  if (
+    leftAngle > threshold.up &&
+    rightAngle > threshold.up &&
+    leftStage === "down"
+  ) {
+    leftStage = "up";
+    leftCount++;
+  }
+  if (leftAngle < threshold.down && rightAngle < threshold.down) {
+    leftStage = "down";
+  }
+  return { leftStage, leftCount };
+};
+
+export const showDemo = (
+  canvasElement,
+  body,
+  leftArmAngle,
+  leftLegAngle,
+  rightArmAngle,
+  rightLegAngle
+) => {
+  const canvasContext = canvasElement.getContext("2d");
+  const width = canvasElement.getBoundingClientRect().width;
+  const height = canvasElement.getBoundingClientRect().height;
+  const textHeight = height / 9 / 3;
+  canvasContext.font = `${Math.round(height / 40).toString()}px Arial`;
+  canvasContext.fillStyle = "black";
+  canvasContext.fillRect((2 * width) / 3, 0, width / 3, height / 3);
+  canvasContext.fillRect(0, 0, width / 3, height / 3);
+  canvasContext.fillStyle = "white";
+  canvasContext.fillText(
+    `left arm angle: ${leftArmAngle.toFixed(0)}`,
+    10,
+    textHeight * 1
+  );
+  canvasContext.fillText(
+    `left leg angle: ${leftLegAngle.toFixed(0)}`,
+    10,
+    textHeight * 2
+  );
+  canvasContext.fillText(
+    `left wrist: (${body.left.wrist.x.toFixed(2)}, ${body.left.wrist.y.toFixed(
+      2
+    )}, ${body.left.wrist.z.toFixed(2)})`,
+    10,
+    textHeight * 3
+  );
+  canvasContext.fillText(
+    `left elbow: (${body.left.elbow.x.toFixed(2)}, ${body.left.elbow.y.toFixed(
+      2
+    )}, ${body.left.elbow.z.toFixed(2)})`,
+    10,
+    textHeight * 4
+  );
+  canvasContext.fillText(
+    `left shoulder: (${body.left.shoulder.x.toFixed(
+      2
+    )}, ${body.left.shoulder.y.toFixed(2)}, ${body.left.shoulder.z.toFixed(
+      2
+    )})`,
+    10,
+    textHeight * 5
+  );
+  canvasContext.fillText(
+    `left hip: (${body.left.hip.x.toFixed(2)}, ${body.left.hip.y.toFixed(
+      2
+    )}, ${body.left.hip.z.toFixed(2)})`,
+    10,
+    textHeight * 6
+  );
+  canvasContext.fillText(
+    `left knee: (${body.left.knee.x.toFixed(2)}, ${body.left.knee.y.toFixed(
+      2
+    )}, ${body.left.knee.z.toFixed(2)})`,
+    10,
+    textHeight * 7
+  );
+  canvasContext.fillText(
+    `left ankle: (${body.left.ankle.x.toFixed(2)}, ${body.left.ankle.y.toFixed(
+      2
+    )}, ${body.left.ankle.z.toFixed(2)})`,
+    10,
+    textHeight * 8
+  );
+  canvasContext.fillText(
+    `right arm angle: ${rightArmAngle.toFixed(0)}`,
+    10 + (2 * width) / 3,
+    textHeight * 1
+  );
+  canvasContext.fillText(
+    `right leg angle: ${rightLegAngle.toFixed(0)}`,
+    10 + (2 * width) / 3,
+    textHeight * 2
+  );
+  canvasContext.fillText(
+    `right wrist: (${body.right.wrist.x.toFixed(
+      2
+    )}, ${body.right.wrist.y.toFixed(2)}, ${body.right.wrist.z.toFixed(2)})`,
+    10 + (2 * width) / 3,
+    textHeight * 3
+  );
+  canvasContext.fillText(
+    `right elbow: (${body.right.elbow.x.toFixed(
+      2
+    )}, ${body.right.elbow.y.toFixed(2)}, ${body.right.elbow.z.toFixed(2)})`,
+    10 + (2 * width) / 3,
+    textHeight * 4
+  );
+  canvasContext.fillText(
+    `right shoulder: (${body.right.shoulder.x.toFixed(
+      2
+    )}, ${body.right.shoulder.y.toFixed(2)}, ${body.right.shoulder.z.toFixed(
+      2
+    )})`,
+    10 + (2 * width) / 3,
+    textHeight * 5
+  );
+  canvasContext.fillText(
+    `right hip: (${body.right.hip.x.toFixed(2)}, ${body.right.hip.y.toFixed(
+      2
+    )}, ${body.right.hip.z.toFixed(2)})`,
+    10 + (2 * width) / 3,
+    textHeight * 6
+  );
+  canvasContext.fillText(
+    `right knee: (${body.right.knee.x.toFixed(2)}, ${body.right.knee.y.toFixed(
+      2
+    )}, ${body.right.knee.z.toFixed(2)})`,
+    10 + (2 * width) / 3,
+    textHeight * 7
+  );
+  canvasContext.fillText(
+    `right ankle: (${body.right.ankle.x.toFixed(
+      2
+    )}, ${body.right.ankle.y.toFixed(2)}, ${body.right.ankle.z.toFixed(2)})`,
+    10 + (2 * width) / 3,
+    textHeight * 8
+  );
 };
