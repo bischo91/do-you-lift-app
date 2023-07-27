@@ -79,6 +79,7 @@ export const Webcam = ({ workoutOption }) => {
         .then((stream) => {
           leftCount = 0;
           rightCount = 0;
+          // drawOnCanvas();
 
           // Activate the webcam stream.
           const recordButton = document.getElementById("startRecording");
@@ -86,26 +87,17 @@ export const Webcam = ({ workoutOption }) => {
           // const downloadButton = document.getElementById("download")
 
           if (recordButton && stopButton) {
-            const videoStream = canvasRef.current.captureStream(30);
+            const videoStream = canvasRef.current.captureStream(0);
             videoStream.getVideoTracks()[0].requestFrame();
             const mixed = new MediaStream([
               ...videoStream.getVideoTracks(),
               ...stream.getVideoTracks(),
             ]);
-            // stream.getVideoTracks().forEach((track) => {
-            //   mixed.addTrack(track);
-            // });
-            // console.log(stream.getVideoTracks());
-            // console.log(stream);
-            // console.log(videoStream);
-            // videoStream.getVideoTracks()[0].forEach((track) => {
-            //   mixed.addTrack(track);
-            // });
+
             mediaRecorder = new MediaRecorder(mixed);
             mediaRecorder.ondataavailable = (e) => {
               chunks.push(e.data);
             };
-            drawOnCanvas();
             console.log("here");
             // mediaRecorder = new MediaRecorder(stream);
             recordButton.addEventListener("click", () => mediaRecorder.start());
@@ -243,6 +235,8 @@ export const Webcam = ({ workoutOption }) => {
               canvasElement.width,
               canvasElement.height
             );
+            drawOnCanvas();
+            // video.style = "display:hidden";
             if (currentWorkout === "armCurl") {
               showAngles(canvasElement, "left", leftArmAngle);
               showAngles(canvasElement, "right", rightArmAngle);
