@@ -14,6 +14,8 @@ import {
   twoSideWorkout,
 } from "../utils";
 
+import { RecordIcon } from "../asset/record-button";
+
 export const Webcam = ({ workoutOption }) => {
   const [renderCountStage, setRenderCountStage] = useState({
     leftCount: 0,
@@ -119,8 +121,6 @@ export const Webcam = ({ workoutOption }) => {
     const canvasElement = canvasRef.current;
     const canvasCtx = canvasElement.getContext("2d");
     const drawingUtils = new DrawingUtils(canvasCtx);
-
-    console.log(chunks);
 
     const handleResize = () => {
       navigator.mediaDevices
@@ -330,37 +330,37 @@ export const Webcam = ({ workoutOption }) => {
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
-      <div>
+      <div className="w-1/2 h-full m-auto">
         <div
           className={`${
             isWebcamRunning && buttonText !== "Loading..."
               ? "inline-flex"
               : "hidden"
-          } w-1/2 m-auto`}
+          } w-full m-auto h-full`}
         >
           <button
             id="resetButton"
             // onClick={() => setResetCount(true)}
-            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
+            className="w-1/2 h-full p-3 mx-2 bg-gray-400 rounded-lg"
           >
             Restart Count
           </button>
           <button
             id="startRecording"
-            className="w-1/2 p-3 mx-2 bg-gray-400 rounded-lg"
+            className="w-10 h-full mx-2 bg-gray-400 rounded-lg"
           >
-            R
+            <RecordIcon className="w-10 h-10 m-auto" />
           </button>
           <button
             id="stopRecording"
-            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
+            className="w-10 h-full mx-2 bg-gray-400 rounded-lg"
           >
-            S
+            <RecordIcon className="w-10 h-10 m-auto" />
           </button>
           <a
             id="download"
             href={downloadUrl}
-            // type="video"
+            className="w-1/2 mx-2"
             download="test.mp4"
           >
             <button className="w-full p-3 mx-2 bg-gray-400 rounded-lg">

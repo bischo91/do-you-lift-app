@@ -1,4 +1,4 @@
-export const RecordIcon = () => {
+export const RecordIcon = (className) => {
   return (
     <svg
       width="800px"
@@ -6,6 +6,7 @@ export const RecordIcon = () => {
       viewBox="0 0 72 72"
       id="emoji"
       xmlns="http://www.w3.org/2000/svg"
+      {...className}
     >
       <g id="color" />
       <g id="line">
