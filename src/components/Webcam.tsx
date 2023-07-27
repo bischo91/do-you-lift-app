@@ -83,33 +83,24 @@ export const Webcam = ({ workoutOption }) => {
           // Activate the webcam stream.
           const recordButton = document.getElementById("startRecording");
           const stopButton = document.getElementById("stopRecording");
-          // const downloadButton = document.getElementById("download")
+          const videoStream = canvasRef.current.captureStream(30);
+          const mixed = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...stream.getVideoTracks(),
+          ]);
+          mediaRecorder = new MediaRecorder(mixed);
+          mediaRecorder.ondataavailable = (e) => {
+            chunks.push(e.data);
+          };
+          recordButton.addEventListener("click", () => mediaRecorder.start());
 
           if (recordButton && stopButton) {
-            const videoStream = canvasRef.current.captureStream(30);
-            videoStream.getVideoTracks()[0].requestFrame();
-            const mixed = new MediaStream([
-              ...videoStream.getVideoTracks(),
-              ...stream.getVideoTracks(),
-            ]);
-
-            mediaRecorder = new MediaRecorder(mixed);
-            mediaRecorder.ondataavailable = (e) => {
-              chunks.push(e.data);
-            };
-            console.log("here");
-            // mediaRecorder = new MediaRecorder(stream);
-            recordButton.addEventListener("click", () => mediaRecorder.start());
             stopButton.addEventListener("click", () => mediaRecorder.stop());
-
             mediaRecorder.onstop = (e) => {
               const blob = new Blob(chunks, { type: "video/mp4" });
               const videoURL = URL.createObjectURL(blob);
-
-              // downloadUrl = window.URL.createObjectURL(blob);
               videoRef.current.src = videoURL;
               const aDownload: any = document.getElementById("download");
-              // aDownload.href = videoURL;
               aDownload.href = videoURL;
               aDownload.download = "video_test.mp4";
               // aDownload.textContent = aDownload.download;
@@ -194,6 +185,9 @@ export const Webcam = ({ workoutOption }) => {
         });
         handleResize();
         initialize = false;
+        canvasElement
+          .getContext("2d")
+          .clearRect(0, 0, canvasElement.width, canvasElement.height);
       }
       let startTimeMs = performance.now();
 
@@ -222,9 +216,6 @@ export const Webcam = ({ workoutOption }) => {
             canvasElement.width = width;
             canvasElement.height = height;
 
-            canvasElement
-              .getContext("2d")
-              .clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(
               video,
               0,
@@ -345,7 +336,7 @@ export const Webcam = ({ workoutOption }) => {
             isWebcamRunning && buttonText !== "Loading..."
               ? "inline-flex"
               : "hidden"
-          } w-1/4 m-auto`}
+          } w-1/2 m-auto`}
         >
           <button
             id="resetButton"
@@ -356,7 +347,7 @@ export const Webcam = ({ workoutOption }) => {
           </button>
           <button
             id="startRecording"
-            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
+            className="w-1/2 p-3 mx-2 bg-gray-400 rounded-lg"
           >
             R
           </button>
@@ -371,9 +362,10 @@ export const Webcam = ({ workoutOption }) => {
             href={downloadUrl}
             // type="video"
             download="test.mp4"
-            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
           >
-            download {downloadUrl}
+            <button className="w-full p-3 mx-2 bg-gray-400 rounded-lg">
+              Download
+            </button>
           </a>
         </div>
         <div className="inline-flex w-full">
