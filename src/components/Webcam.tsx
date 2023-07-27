@@ -14,6 +14,10 @@ import {
   twoSideWorkout,
 } from "../utils";
 
+// import { RecordIcon } from "../asset/record-button";
+import RecordIcon from "../asset/record.png";
+import StopIcon from "../asset/stop.png";
+
 export const Webcam = ({ workoutOption }) => {
   const [renderCountStage, setRenderCountStage] = useState({
     leftCount: 0,
@@ -28,11 +32,12 @@ export const Webcam = ({ workoutOption }) => {
   const [buttonText, setButtonText] = useState("Start");
   const [isWebcamRunning, setIsWebcamRunning] = useState(false);
   let downloadUrl;
-  // const startRecord = (canvasElement) => {
-
-  // };
+  const [isRecording, setIsRecording] = useState(false);
+  const [isDownloadReady, setIsDownloadReady] = useState(false);
 
   useEffect(() => {
+    var mediaRecorder;
+
     let leftCount = 0;
     let rightCount = 0;
     let leftStage: "down" | "up" = "down";
@@ -79,7 +84,6 @@ export const Webcam = ({ workoutOption }) => {
         .then((stream) => {
           leftCount = 0;
           rightCount = 0;
-
           // Activate the webcam stream.
           const recordButton = document.getElementById("startRecording");
           const stopButton = document.getElementById("stopRecording");
@@ -92,22 +96,38 @@ export const Webcam = ({ workoutOption }) => {
           mediaRecorder.ondataavailable = (e) => {
             chunks.push(e.data);
           };
-          recordButton.addEventListener("click", () => mediaRecorder.start());
-
           if (recordButton && stopButton) {
-            stopButton.addEventListener("click", () => mediaRecorder.stop());
+            // if (isRecording) mediaRecorder.start();
+            // else mediaRecorder.stop();
+            recordButton.addEventListener("click", () => {
+              setIsRecording(true);
+              setIsDownloadReady(false);
+              console.log(isRecording);
+              return mediaRecorder.start();
+            });
+
+            stopButton.addEventListener("click", () => {
+              setIsRecording(false);
+              console.log(isRecording);
+              return mediaRecorder.stop();
+            });
             mediaRecorder.onstop = (e) => {
               const blob = new Blob(chunks, { type: "video/mp4" });
               const videoURL = URL.createObjectURL(blob);
               videoRef.current.src = videoURL;
               const aDownload: any = document.getElementById("download");
               aDownload.href = videoURL;
+              console.log("onstop");
               aDownload.download = "video_test.mp4";
+
               // aDownload.textContent = aDownload.download;
               console.log(videoURL);
               chunks = [];
+              setIsRecording(false);
+              setIsDownloadReady(true);
             };
           }
+
           video.srcObject = stream;
           video.addEventListener("loadeddata", predictWebcam);
         });
@@ -115,12 +135,9 @@ export const Webcam = ({ workoutOption }) => {
 
     createPoseLandmarker();
     let video = videoRef.current;
-    let mediaRecorder;
     const canvasElement = canvasRef.current;
     const canvasCtx = canvasElement.getContext("2d");
     const drawingUtils = new DrawingUtils(canvasCtx);
-
-    console.log(chunks);
 
     const handleResize = () => {
       navigator.mediaDevices
@@ -164,6 +181,7 @@ export const Webcam = ({ workoutOption }) => {
         .drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
       requestAnimationFrame(drawOnCanvas);
     };
+
     const predictWebcam = async () => {
       const resetButton = document.getElementById("resetButton");
       if (resetButton)
@@ -181,17 +199,17 @@ export const Webcam = ({ workoutOption }) => {
         await poseLandmarker.setOptions({
           runningMode: "VIDEO",
           minPoseDetectionConfidence: 0.8,
-          minPosePresenceConfidence: 0.9,
+          minPosePresenceConfidence: 0.8,
         });
         handleResize();
         initialize = false;
-        canvasElement
-          .getContext("2d")
-          .clearRect(0, 0, canvasElement.width, canvasElement.height);
       }
       let startTimeMs = performance.now();
 
       if (lastVideoTime !== video.currentTime) {
+        canvasElement
+          .getContext("2d")
+          .clearRect(0, 0, canvasElement.width, canvasElement.height);
         lastVideoTime = video.currentTime;
         poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
           canvasCtx.save();
@@ -330,41 +348,47 @@ export const Webcam = ({ workoutOption }) => {
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
-      <div>
+      <div className="w-1/2 h-full m-auto">
         <div
           className={`${
             isWebcamRunning && buttonText !== "Loading..."
               ? "inline-flex"
               : "hidden"
-          } w-1/2 m-auto`}
+          } w-full m-auto h-full`}
         >
           <button
             id="resetButton"
             // onClick={() => setResetCount(true)}
-            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
+            className="w-1/2 h-full p-3 mx-2 bg-gray-400 rounded-lg"
           >
             Restart Count
           </button>
           <button
             id="startRecording"
-            className="w-1/2 p-3 mx-2 bg-gray-400 rounded-lg"
+            className={`${
+              !isRecording ? "block" : "hidden"
+            } z-50 w-10 h-full mx-2 rounded-lg`}
           >
-            R
+            <img src={RecordIcon} alt="Record" className="w-10 h-10 m-auto" />
           </button>
           <button
             id="stopRecording"
-            className="w-full p-3 mx-2 bg-gray-400 rounded-lg"
+            className={`${
+              isRecording ? "block" : "hidden"
+            } w-10 h-full mx-2 rounded-lg`}
           >
-            S
+            <img src={StopIcon} alt="Stop" className="w-10 h-10 m-auto" />
           </button>
           <a
             id="download"
             href={downloadUrl}
-            // type="video"
+            className={`${
+              !isRecording && isDownloadReady ? "block" : "hidden"
+            } w-1/2 mx-2`}
             download="test.mp4"
           >
             <button className="w-full p-3 mx-2 bg-gray-400 rounded-lg">
-              Download
+              Download {downloadUrl}
             </button>
           </a>
         </div>
