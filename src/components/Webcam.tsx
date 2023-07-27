@@ -181,7 +181,7 @@ export const Webcam = ({ workoutOption }) => {
         await poseLandmarker.setOptions({
           runningMode: "VIDEO",
           minPoseDetectionConfidence: 0.8,
-          minPosePresenceConfidence: 0.9,
+          minPosePresenceConfidence: 0.8,
         });
         handleResize();
         initialize = false;
