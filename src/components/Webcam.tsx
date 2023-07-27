@@ -79,7 +79,6 @@ export const Webcam = ({ workoutOption }) => {
         .then((stream) => {
           leftCount = 0;
           rightCount = 0;
-          // drawOnCanvas();
 
           // Activate the webcam stream.
           const recordButton = document.getElementById("startRecording");
@@ -87,7 +86,7 @@ export const Webcam = ({ workoutOption }) => {
           // const downloadButton = document.getElementById("download")
 
           if (recordButton && stopButton) {
-            const videoStream = canvasRef.current.captureStream(0);
+            const videoStream = canvasRef.current.captureStream(30);
             videoStream.getVideoTracks()[0].requestFrame();
             const mixed = new MediaStream([
               ...videoStream.getVideoTracks(),
@@ -105,8 +104,6 @@ export const Webcam = ({ workoutOption }) => {
 
             mediaRecorder.onstop = (e) => {
               const blob = new Blob(chunks, { type: "video/mp4" });
-
-              console.log(chunks);
               const videoURL = URL.createObjectURL(blob);
 
               // downloadUrl = window.URL.createObjectURL(blob);
