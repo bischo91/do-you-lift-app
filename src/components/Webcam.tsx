@@ -134,7 +134,6 @@ export const Webcam = ({ workoutOption }) => {
       }
     };
     enableWebcamButton.addEventListener("click", enableCam);
-    console.log(aElement);
 
     // Enable the live webcam view and start detection.
 
@@ -146,7 +145,6 @@ export const Webcam = ({ workoutOption }) => {
 
     // If webcam supported, add event listener to button for when user
     // wants to activate it.
-    console.log("useEff");
 
     if (!navigator.mediaDevices?.getUserMedia)
       console.warn("getUserMedia() is not supported by your browser");
@@ -184,6 +182,13 @@ export const Webcam = ({ workoutOption }) => {
       }
 
       if (lastVideoTime !== videoElement.currentTime) {
+        canvasCtx.drawImage(
+          videoElement,
+          0,
+          0,
+          canvasElement.width,
+          canvasElement.height
+        );
         lastVideoTime = videoElement.currentTime;
         poseLandmarker.detectForVideo(
           videoElement,
@@ -210,13 +215,6 @@ export const Webcam = ({ workoutOption }) => {
               canvasElement.width = width;
               canvasElement.height = height;
 
-              canvasCtx.drawImage(
-                videoElement,
-                0,
-                0,
-                canvasElement.width,
-                canvasElement.height
-              );
               if (currentWorkout === "armCurl") {
                 writeOnCanvas(
                   canvasElement,
@@ -394,31 +392,6 @@ export const Webcam = ({ workoutOption }) => {
               </button>
             </a>
           </div>
-
-          {/* <div className="inline-flex w-full">
-            {workoutOption?.value !== "demo" && (
-              <div className="flex-col w-full ml-0 space-y-2">
-                <div className="text-4xl">
-                  <span className="text-">
-                    {renderCountStage.leftStage?.toUpperCase()}
-                  </span>
-                </div>
-                <div className="text-4xl">
-                  <span>{renderCountStage.leftCount}</span>
-                </div>
-              </div>
-            )}
-            {workoutOption?.value === "armCurl" && (
-              <div className="flex-col w-full mr-0 space-y-2">
-                <div className="text-4xl">
-                  <span>{renderCountStage.rightStage?.toUpperCase()}</span>
-                </div>
-                <div className="text-4xl">
-                  <span>{renderCountStage.rightCount}</span>
-                </div>
-              </div>
-            )}
-          </div> */}
         </div>
       )}
       <div style={{ position: "relative", margin: "10px" }}>
