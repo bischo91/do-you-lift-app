@@ -108,44 +108,74 @@ export const getAngles = (body) => {
   );
   return { leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle };
 };
-export const showAngles = (
+export const writeOnCanvas = (
   canvasElement: HTMLCanvasElement,
   side: "left" | "right",
-  angle
+  angle,
+  stage,
+  count
 ) => {
   const width = canvasElement.getBoundingClientRect().width;
   const height = canvasElement.getBoundingClientRect().height;
   const canvasContext = canvasElement.getContext("2d");
+  canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
+  canvasContext.fillStyle = "black";
   switch (side) {
     case "left":
-      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
-      canvasContext.fillStyle = "black";
-      canvasContext.fillRect(0, 0, width / 6, height / 12);
+      canvasContext.fillRect(0, 0, width / 6, (height * 2) / 12);
       canvasContext.fillStyle = "white";
       canvasContext.fillText(
-        `Angle: ${angle.toFixed(0)}\u00B0`,
+        `Angle: ${angle.toFixed(0)}`,
         (0.125 * width) / 6,
         (1.25 * height) / 24
       );
+      canvasContext.fillText(
+        `Count: ${count}`,
+        (0.125 * width) / 6,
+        (2.25 * height) / 24
+      );
+      canvasContext.fillText(
+        stage.toUpperCase(),
+        (0.125 * width) / 6,
+        (3.25 * height) / 24
+      );
       break;
     case "right":
-      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
-      canvasContext.fillStyle = "black";
-      canvasContext.fillRect((5 * width) / 6, 0, width / 6, height / 12);
+      canvasContext.fillRect((5 * width) / 6, 0, width / 6, (height * 2) / 12);
       canvasContext.fillStyle = "white";
       canvasContext.fillText(
         `Angle: ${angle.toFixed(0)}\u00B0`,
         (5.125 * width) / 6,
         (1.25 * height) / 24
       );
+      canvasContext.fillText(
+        `Count: ${count}`,
+        (5.125 * width) / 6,
+        (2.25 * height) / 24
+      );
+      canvasContext.fillText(
+        stage.toUpperCase(),
+        (5.125 * width) / 6,
+        (3.25 * height) / 24
+      );
       break;
     default:
-      canvasContext.fillRect(0, 0, width / 6, height / 12);
+      canvasContext.fillRect(0, 0, width / 6, (height * 3) / 12);
       canvasContext.fillStyle = "white";
       canvasContext.fillText(
         `Angle: ${angle.toFixed(0)}\u00B0`,
         (0.125 * width) / 6,
         (1.25 * height) / 24
+      );
+      canvasContext.fillText(
+        `Count: ${count}`,
+        (0.125 * width) / 6,
+        (2.25 * height) / 24
+      );
+      canvasContext.fillText(
+        stage.toUpperCase(),
+        (0.125 * width) / 6,
+        (3.25 * height) / 24
       );
       break;
   }
