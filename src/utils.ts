@@ -125,7 +125,7 @@ export const writeOnCanvas = (
       canvasContext.fillRect(0, 0, width / 6, (height * 2) / 12);
       canvasContext.fillStyle = "white";
       canvasContext.fillText(
-        `Angle: ${angle.toFixed(0)}`,
+        `Angle: ${angle.toFixed(0)}\u00B0`,
         (0.125 * width) / 6,
         (1.25 * height) / 24
       );
@@ -240,7 +240,9 @@ export const showDemo = (
   const width = canvasElement.getBoundingClientRect().width;
   const height = canvasElement.getBoundingClientRect().height;
   const textHeight = height / 9 / 3;
-  canvasContext.font = `${Math.round(height / 40).toString()}px Arial`;
+  canvasContext.font = `${Math.round(
+    (height > width ? width : height) / 40
+  ).toString()}px Arial`;
   canvasContext.fillStyle = "black";
   canvasContext.fillRect((2 * width) / 3, 0, width / 3, height / 3);
   canvasContext.fillRect(0, 0, width / 3, height / 3);

@@ -14,6 +14,7 @@ import {
   writeOnCanvas,
 } from "../utils";
 
+import DownloadIcon from "../asset/download.png";
 import RecordIcon from "../asset/record.png";
 import StopIcon from "../asset/stop.png";
 
@@ -46,6 +47,9 @@ export const Webcam = ({ workoutOption }) => {
   };
 
   useEffect(() => {
+    if (!navigator.mediaDevices?.getUserMedia)
+      console.warn("getUserMedia() is not supported by your browser");
+
     let cameraAspectRatio;
     const handleResize = () => {
       const videoHeight = videoElement.offsetHeight;
@@ -98,7 +102,6 @@ export const Webcam = ({ workoutOption }) => {
               ...videoStream.getVideoTracks(),
               ...stream.getVideoTracks(),
             ]);
-
             if (recordButton && stopButton) {
               recordButton.addEventListener("click", () => {
                 mediaRecorder = new MediaRecorder(mixed);
@@ -126,14 +129,13 @@ export const Webcam = ({ workoutOption }) => {
                 return mediaRecorder.stop();
               });
             }
-
             videoElement.srcObject = stream;
             videoElement.addEventListener("loadeddata", predictWebcam);
           });
-        console.log("enableCam2");
       }
     };
     enableWebcamButton.addEventListener("click", enableCam);
+    window.addEventListener("resize", handleResize);
 
     // Enable the live webcam view and start detection.
 
@@ -141,13 +143,8 @@ export const Webcam = ({ workoutOption }) => {
     const canvasCtx = canvasElement.getContext("2d");
     const drawingUtils = new DrawingUtils(canvasCtx);
 
-    window.addEventListener("resize", handleResize);
-
     // If webcam supported, add event listener to button for when user
     // wants to activate it.
-
-    if (!navigator.mediaDevices?.getUserMedia)
-      console.warn("getUserMedia() is not supported by your browser");
 
     let lastVideoTime = -1;
     let currentWorkout;
@@ -155,6 +152,9 @@ export const Webcam = ({ workoutOption }) => {
     let rightArmAngle = 0;
     let leftLegAngle = 0;
     let rightLegAngle = 0;
+    // Add timer for each rep
+    let lastTimeLeftStageChange;
+    let lastTimeRightStageChange;
 
     //   requestAnimationFrame(drawOnCanvas); for drawing canvas?
 
@@ -182,19 +182,14 @@ export const Webcam = ({ workoutOption }) => {
       }
 
       if (lastVideoTime !== videoElement.currentTime) {
-        canvasCtx.drawImage(
-          videoElement,
-          0,
-          0,
-          canvasElement.width,
-          canvasElement.height
-        );
         lastVideoTime = videoElement.currentTime;
+
         poseLandmarker.detectForVideo(
           videoElement,
           performance.now(),
           (result) => {
             canvasCtx.save();
+
             canvasCtx.font = "8px Arial";
             for (let landmark of result.landmarks) {
               const body = getBodyPoints(landmark);
@@ -214,7 +209,13 @@ export const Webcam = ({ workoutOption }) => {
               const height = canvasElement.getBoundingClientRect().height;
               canvasElement.width = width;
               canvasElement.height = height;
-
+              canvasCtx.drawImage(
+                videoElement,
+                0,
+                0,
+                canvasElement.width,
+                canvasElement.height
+              );
               if (currentWorkout === "armCurl") {
                 writeOnCanvas(
                   canvasElement,
@@ -347,7 +348,7 @@ export const Webcam = ({ workoutOption }) => {
         {workoutOption?.value}
       </span>
       {buttonText !== "Start" && workoutOption && (
-        <div className="w-1/2 h-full m-auto">
+        <div className="w-full h-full m-auto md:w-2/3 lg:w-1/2">
           <div
             className={`${
               buttonText !== "Loading..." && workoutOption
@@ -357,7 +358,7 @@ export const Webcam = ({ workoutOption }) => {
           >
             <button
               id="resetButton"
-              className="w-1/2 h-full p-3 mx-2 bg-gray-400 rounded-lg"
+              className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100"
             >
               Restart Count
             </button>
@@ -365,30 +366,59 @@ export const Webcam = ({ workoutOption }) => {
               id="startRecording"
               className={`${
                 !isRecording ? "block" : "hidden"
-              } w-10 h-full mx-2 rounded-lg`}
+              } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
             >
-              <img src={RecordIcon} alt="Record" className="w-10 h-10 m-auto" />
+              <div className="inline-flex w-full h-full">
+                <img
+                  src={RecordIcon}
+                  alt="Record"
+                  className="w-10 h-10 m-auto mr-2"
+                />{" "}
+                <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+                  Record
+                </span>
+              </div>
             </button>
             <button
               id="stopRecording"
               className={`${
                 isRecording ? "block" : "hidden"
-              } w-10 h-full mx-2 rounded-lg`}
+              } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
             >
-              <img src={StopIcon} alt="Stop" className="w-10 h-10 m-auto" />
+              <div className="inline-flex w-full h-full">
+                <img
+                  src={StopIcon}
+                  alt="Stop"
+                  className="w-10 h-10 m-auto mr-2 "
+                />
+                <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+                  Stop
+                </span>
+              </div>
             </button>
             <a
               ref={downloadRef}
               href="localhost:3001"
               className={`${
                 !isRecording && isDownloadReady ? "block" : "hidden"
-              } w-1/2 mx-2`}
+              } w-full h-full mx-2`}
               download={`${workoutOption.value}-${
                 new Date().toISOString().split("T")[0]
               }.mp4`}
+              target="_blank"
+              rel="noreferrer"
             >
-              <button className="w-full p-3 mx-2 bg-gray-400 rounded-lg">
-                Download
+              <button className="w-full h-16 rounded-lg bg-slate-800 min-w-[145px]">
+                <div className="inline-flex w-full h-full">
+                  <img
+                    src={DownloadIcon}
+                    alt="Download"
+                    className="w-10 h-10 m-auto mr-2 "
+                  />
+                  <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+                    Download
+                  </span>
+                </div>
               </button>
             </a>
           </div>
