@@ -238,7 +238,7 @@ export const Webcam = ({ workoutOption }) => {
                   lastTimeLeftStageChange = lastVideoTime;
                 }
                 if (
-                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
+                  lastVideoTime - lastTimeRightStageChange > threshold.time &&
                   rightCount !== result.rightCount
                 ) {
                   rightCount = result.rightCount;
