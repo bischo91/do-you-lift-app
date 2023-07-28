@@ -2,6 +2,10 @@
 
 <br />
 
+## [0.3.3] - 2023.07.23
+
+### Fixed many things (style button, download feature, recording etc)
+
 ## [0.3.2] - 2023.07.23
 
 ### Changed

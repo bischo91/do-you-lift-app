@@ -153,8 +153,8 @@ export const Webcam = ({ workoutOption }) => {
     let leftLegAngle = 0;
     let rightLegAngle = 0;
     // Add timer for each rep
-    let lastTimeLeftStageChange;
-    let lastTimeRightStageChange;
+    // let lastTimeLeftStageChange;
+    // let lastTimeRightStageChange;
 
     //   requestAnimationFrame(drawOnCanvas); for drawing canvas?
 
