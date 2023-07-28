@@ -153,8 +153,8 @@ export const Webcam = ({ workoutOption }) => {
     let leftLegAngle = 0;
     let rightLegAngle = 0;
     // Add timer for each rep
-    // let lastTimeLeftStageChange;
-    // let lastTimeRightStageChange;
+    let lastTimeLeftStageChange;
+    let lastTimeRightStageChange;
 
     //   requestAnimationFrame(drawOnCanvas); for drawing canvas?
 
@@ -181,15 +181,16 @@ export const Webcam = ({ workoutOption }) => {
         initialize = false;
       }
 
-      if (lastVideoTime !== videoElement.currentTime) {
-        lastVideoTime = videoElement.currentTime;
+      if (lastVideoTime !== videoRef.current.currentTime) {
+        lastVideoTime = videoRef.current.currentTime;
+        if (!lastTimeLeftStageChange) lastTimeLeftStageChange = lastVideoTime;
+        if (!lastTimeRightStageChange) lastTimeRightStageChange = lastVideoTime;
 
         poseLandmarker.detectForVideo(
-          videoElement,
+          videoRef.current,
           performance.now(),
           (result) => {
             canvasCtx.save();
-
             canvasCtx.font = "8px Arial";
             for (let landmark of result.landmarks) {
               const body = getBodyPoints(landmark);
@@ -210,13 +211,43 @@ export const Webcam = ({ workoutOption }) => {
               canvasElement.width = width;
               canvasElement.height = height;
               canvasCtx.drawImage(
-                videoElement,
+                videoRef.current,
                 0,
                 0,
                 canvasElement.width,
                 canvasElement.height
               );
               if (currentWorkout === "armCurl") {
+                const threshold = { down: 120, up: 45, time: 0.75 };
+                const result = twoSideWorkout(
+                  threshold,
+                  leftArmAngle,
+                  leftStage,
+                  leftCount,
+                  rightArmAngle,
+                  rightStage,
+                  rightCount
+                );
+                if (
+                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
+                  leftCount !== result.leftCount
+                ) {
+                  leftCount = result.leftCount;
+                }
+                if (leftStage !== result.leftStage) {
+                  lastTimeLeftStageChange = lastVideoTime;
+                }
+                if (
+                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
+                  rightCount !== result.rightCount
+                ) {
+                  rightCount = result.rightCount;
+                }
+                if (rightStage !== result.rightStage) {
+                  lastTimeRightStageChange = lastVideoTime;
+                }
+                rightStage = result.rightStage;
+                leftStage = result.leftStage;
                 writeOnCanvas(
                   canvasElement,
                   "left",
@@ -231,21 +262,17 @@ export const Webcam = ({ workoutOption }) => {
                   rightStage,
                   rightCount
                 );
-                const threshold = { down: 120, up: 45 };
-                const result = twoSideWorkout(
+              } else if (currentWorkout === "squat") {
+                const threshold = { down: 100, up: 150 };
+                const result = oneSideWorkout(
                   threshold,
-                  leftArmAngle,
+                  leftLegAngle,
                   leftStage,
                   leftCount,
-                  rightArmAngle,
-                  rightStage,
-                  rightCount
+                  rightLegAngle
                 );
                 leftStage = result.leftStage;
                 leftCount = result.leftCount;
-                rightStage = result.rightStage;
-                rightCount = result.rightCount;
-              } else if (currentWorkout === "squat") {
                 writeOnCanvas(
                   canvasElement,
                   "left",
@@ -260,17 +287,17 @@ export const Webcam = ({ workoutOption }) => {
                   rightStage,
                   rightCount
                 );
-                const threshold = { down: 100, up: 150 };
+              } else if (currentWorkout === "benchPress") {
+                const threshold = { down: 50, up: 120 };
                 const result = oneSideWorkout(
                   threshold,
-                  leftLegAngle,
+                  leftArmAngle,
                   leftStage,
                   leftCount,
-                  rightLegAngle
+                  rightArmAngle
                 );
                 leftStage = result.leftStage;
                 leftCount = result.leftCount;
-              } else if (currentWorkout === "benchPress") {
                 writeOnCanvas(
                   canvasElement,
                   "left",
@@ -285,16 +312,6 @@ export const Webcam = ({ workoutOption }) => {
                   rightStage,
                   rightCount
                 );
-                const threshold = { down: 50, up: 120 };
-                const result = oneSideWorkout(
-                  threshold,
-                  leftArmAngle,
-                  leftStage,
-                  leftCount,
-                  rightArmAngle
-                );
-                leftStage = result.leftStage;
-                leftCount = result.leftCount;
               } else if (currentWorkout === "demo") {
                 showDemo(
                   canvasElement,
