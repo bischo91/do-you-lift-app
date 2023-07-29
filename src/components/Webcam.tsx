@@ -24,9 +24,13 @@ export const Webcam = ({ workoutOption }) => {
   const downloadRef = useRef(null);
   const workoutRef = useRef(null);
   const enableWebcamRef = useRef(null);
-  const [buttonText, setButtonText] = useState("Start");
+  const restartRef = useRef(null);
+  const recordRef = useRef(null);
+  const stopRef = useRef(null);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isDownloadReady, setIsDownloadReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   let poseLandmarker: PoseLandmarker | undefined = undefined;
 
   const createPoseLandmarker = async () => {
@@ -83,8 +87,9 @@ export const Webcam = ({ workoutOption }) => {
 
     const enableCam = () => {
       if (!webcamRunning) {
+        setIsLoading(true);
         webcamRunning = true;
-        setButtonText("Loading...");
+        enableWebcamRef.current.hidden = true;
         if (!poseLandmarker) {
           console.log("Wait! poseLandmaker not loaded yet.");
           return;
@@ -95,42 +100,39 @@ export const Webcam = ({ workoutOption }) => {
             cameraAspectRatio = stream
               .getVideoTracks()[0]
               .getSettings().aspectRatio;
-            const recordButton = document.getElementById("startRecording");
-            const stopButton = document.getElementById("stopRecording");
             const videoStream = canvasRef.current.captureStream(30);
             const mixed = new MediaStream([
               ...videoStream.getVideoTracks(),
               ...stream.getVideoTracks(),
             ]);
-            if (recordButton && stopButton) {
-              recordButton.addEventListener("click", () => {
-                mediaRecorder = new MediaRecorder(mixed);
-                mediaRecorder.ondataavailable = (e) => {
-                  chunks.push(e.data);
-                };
-                mediaRecorder.onstop = (e) => {
-                  const blob = new Blob(chunks, { type: "video/mp4" });
-                  const videoURL = URL.createObjectURL(blob);
-                  aElement = downloadRef.current;
-                  aElement.href = videoURL;
-                  chunks = [];
-                  setIsRecording(false);
-                  setIsDownloadReady(true);
-                };
-                setIsRecording(true);
-                setIsDownloadReady(false);
-                console.log(isRecording);
-                return mediaRecorder.start();
-              });
-
-              stopButton.addEventListener("click", () => {
+            recordRef.current.addEventListener("click", () => {
+              mediaRecorder = new MediaRecorder(mixed);
+              mediaRecorder.ondataavailable = (e) => {
+                chunks.push(e.data);
+              };
+              mediaRecorder.onstop = (e) => {
+                const blob = new Blob(chunks, { type: "video/mp4" });
+                const videoURL = URL.createObjectURL(blob);
+                aElement = downloadRef.current;
+                aElement.href = videoURL;
+                chunks = [];
                 setIsRecording(false);
-                console.log(isRecording);
-                return mediaRecorder.stop();
-              });
-            }
+                setIsDownloadReady(true);
+              };
+              setIsRecording(true);
+              setIsDownloadReady(false);
+              console.log(isRecording);
+              return mediaRecorder.start();
+            });
+
+            stopRef.current.addEventListener("click", () => {
+              setIsRecording(false);
+              return mediaRecorder.stop();
+            });
+
             videoElement.srcObject = stream;
             videoElement.addEventListener("loadeddata", predictWebcam);
+            // setIsStreaming(true);
           });
       }
     };
@@ -159,9 +161,8 @@ export const Webcam = ({ workoutOption }) => {
     //   requestAnimationFrame(drawOnCanvas); for drawing canvas?
 
     const predictWebcam = async () => {
-      const resetButton = document.getElementById("resetButton");
-      if (resetButton)
-        resetButton.addEventListener("click", () => {
+      if (restartRef.current)
+        restartRef.current.addEventListener("click", () => {
           leftCount = 0;
           rightCount = 0;
         });
@@ -270,7 +271,7 @@ export const Webcam = ({ workoutOption }) => {
                   rightCount
                 );
               } else if (currentWorkout === "squat") {
-                const threshold = { down: 100, up: 150 };
+                const threshold = { down: 100, up: 150, time: 0.75 };
                 const result = oneSideWorkout(
                   threshold,
                   leftLegAngle,
@@ -278,8 +279,16 @@ export const Webcam = ({ workoutOption }) => {
                   leftCount,
                   rightLegAngle
                 );
+                if (
+                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
+                  leftCount !== result.leftCount
+                ) {
+                  leftCount = result.leftCount;
+                }
+                if (leftStage !== result.leftStage) {
+                  lastTimeLeftStageChange = lastVideoTime;
+                }
                 leftStage = result.leftStage;
-                leftCount = result.leftCount;
                 writeOnCanvas(
                   canvasElement,
                   "left",
@@ -287,15 +296,8 @@ export const Webcam = ({ workoutOption }) => {
                   leftStage,
                   leftCount
                 );
-                writeOnCanvas(
-                  canvasElement,
-                  "right",
-                  rightLegAngle,
-                  rightStage,
-                  rightCount
-                );
               } else if (currentWorkout === "benchPress") {
-                const threshold = { down: 50, up: 120 };
+                const threshold = { down: 50, up: 120, time: 0.75 };
                 const result = oneSideWorkout(
                   threshold,
                   leftArmAngle,
@@ -303,21 +305,23 @@ export const Webcam = ({ workoutOption }) => {
                   leftCount,
                   rightArmAngle
                 );
+                if (
+                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
+                  leftCount !== result.leftCount
+                ) {
+                  leftCount = result.leftCount;
+                }
+                if (leftStage !== result.leftStage) {
+                  lastTimeLeftStageChange = lastVideoTime;
+                }
                 leftStage = result.leftStage;
-                leftCount = result.leftCount;
+
                 writeOnCanvas(
                   canvasElement,
                   "left",
                   leftArmAngle,
                   leftStage,
                   leftCount
-                );
-                writeOnCanvas(
-                  canvasElement,
-                  "right",
-                  rightArmAngle,
-                  rightStage,
-                  rightCount
                 );
               } else if (currentWorkout === "demo") {
                 showDemo(
@@ -346,7 +350,9 @@ export const Webcam = ({ workoutOption }) => {
 
       // Call this function again to keep predicting when the browser is ready.
       if (webcamRunning === true) {
-        setButtonText("Reset");
+        enableWebcamButton.hidden = true;
+        setIsStreaming(true);
+        setIsLoading(false);
         window.requestAnimationFrame(predictWebcam);
       }
     };
@@ -355,99 +361,92 @@ export const Webcam = ({ workoutOption }) => {
 
   return (
     <div>
-      <div className="w-1/12 m-auto">
+      <div className={`${workoutOption ?? "hidden"} w-1/6 m-auto`}>
         <button
           ref={enableWebcamRef}
-          className={`${
-            (!workoutOption && buttonText !== "Loading...") ||
-            buttonText === "Reset"
-              ? "hidden"
-              : "block"
-          } w-full p-3 bg-gray-400 rounded-lg`}
+          className="w-full p-3 bg-gray-400 rounded-lg"
         >
-          <span className="">{buttonText}</span>
+          <span className="">Start</span>
         </button>
       </div>
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
-      {buttonText !== "Start" && workoutOption && (
-        <div className="w-full h-full m-auto md:w-2/3 lg:w-1/2">
-          <div
-            className={`${
-              buttonText !== "Loading..." && workoutOption
-                ? "inline-flex"
-                : "hidden"
-            } w-full m-auto h-full`}
+      {isLoading && <span>Loading...</span>}
+      <div
+        className={`${
+          isStreaming ? "none" : "hidden"
+        } w-full h-full m-auto md:w-2/3 lg:w-1/2`}
+      >
+        <div className={"inline-flex w-full m-auto h-full"}>
+          <button
+            ref={restartRef}
+            className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100"
           >
-            <button
-              id="resetButton"
-              className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100"
-            >
-              Restart Count
-            </button>
-            <button
-              id="startRecording"
-              className={`${
-                !isRecording ? "block" : "hidden"
-              } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
-            >
+            Restart Count
+          </button>
+          <button
+            ref={recordRef}
+            className={`${
+              !isRecording ? "block" : "hidden"
+            } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
+          >
+            <div className="inline-flex w-full h-full">
+              <img
+                src={RecordIcon}
+                alt="Record"
+                className="w-10 h-10 m-auto mr-2"
+              />{" "}
+              <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+                Record
+              </span>
+            </div>
+          </button>
+          <button
+            ref={stopRef}
+            className={`${
+              isRecording ? "block" : "hidden"
+            } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
+          >
+            <div className="inline-flex w-full h-full">
+              <img
+                src={StopIcon}
+                alt="Stop"
+                className="w-10 h-10 m-auto mr-2 "
+              />
+              <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+                Stop
+              </span>
+            </div>
+          </button>
+          <a
+            ref={downloadRef}
+            href="localhost:3001"
+            className={`${
+              !isRecording && isDownloadReady ? "block" : "hidden"
+            } w-full h-full mx-2`}
+            download={`${workoutOption?.value}-${
+              new Date().toISOString().split("T")[0]
+            }.mp4`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <button className="w-full h-16 rounded-lg bg-slate-800 min-w-[145px]">
               <div className="inline-flex w-full h-full">
                 <img
-                  src={RecordIcon}
-                  alt="Record"
-                  className="w-10 h-10 m-auto mr-2"
-                />{" "}
-                <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
-                  Record
-                </span>
-              </div>
-            </button>
-            <button
-              id="stopRecording"
-              className={`${
-                isRecording ? "block" : "hidden"
-              } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
-            >
-              <div className="inline-flex w-full h-full">
-                <img
-                  src={StopIcon}
-                  alt="Stop"
+                  src={DownloadIcon}
+                  alt="Download"
                   className="w-10 h-10 m-auto mr-2 "
                 />
                 <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
-                  Stop
+                  Download
                 </span>
               </div>
             </button>
-            <a
-              ref={downloadRef}
-              href="localhost:3001"
-              className={`${
-                !isRecording && isDownloadReady ? "block" : "hidden"
-              } w-full h-full mx-2`}
-              download={`${workoutOption.value}-${
-                new Date().toISOString().split("T")[0]
-              }.mp4`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <button className="w-full h-16 rounded-lg bg-slate-800 min-w-[145px]">
-                <div className="inline-flex w-full h-full">
-                  <img
-                    src={DownloadIcon}
-                    alt="Download"
-                    className="w-10 h-10 m-auto mr-2 "
-                  />
-                  <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
-                    Download
-                  </span>
-                </div>
-              </button>
-            </a>
-          </div>
+          </a>
         </div>
-      )}
+      </div>
+
       <div style={{ position: "relative", margin: "10px" }}>
         <video
           ref={videoRef}
