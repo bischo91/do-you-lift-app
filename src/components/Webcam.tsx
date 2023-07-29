@@ -192,6 +192,13 @@ export const Webcam = ({ workoutOption }) => {
           (result) => {
             canvasCtx.save();
             canvasCtx.font = "8px Arial";
+            canvasCtx.drawImage(
+              videoRef.current,
+              0,
+              0,
+              canvasElement.width,
+              canvasElement.height
+            );
             for (let landmark of result.landmarks) {
               const body = getBodyPoints(landmark);
               const angles = getAngles(body);
