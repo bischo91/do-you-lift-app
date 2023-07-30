@@ -108,48 +108,43 @@ export const getAngles = (body) => {
   );
   return { leftArmAngle, rightArmAngle, leftLegAngle, rightLegAngle };
 };
-export const showAngles = (
+export const writeOnCanvas = (
   canvasElement: HTMLCanvasElement,
   side: "left" | "right",
-  angle
+  angle,
+  stage,
+  count
 ) => {
   const width = canvasElement.getBoundingClientRect().width;
   const height = canvasElement.getBoundingClientRect().height;
   const canvasContext = canvasElement.getContext("2d");
-  switch (side) {
-    case "left":
-      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
-      canvasContext.fillStyle = "black";
-      canvasContext.fillRect(0, 0, width / 6, height / 12);
-      canvasContext.fillStyle = "white";
-      canvasContext.fillText(
-        `Angle: ${angle.toFixed(0)}\u00B0`,
-        (0.125 * width) / 6,
-        (1.25 * height) / 24
-      );
-      break;
-    case "right":
-      canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
-      canvasContext.fillStyle = "black";
-      canvasContext.fillRect((5 * width) / 6, 0, width / 6, height / 12);
-      canvasContext.fillStyle = "white";
-      canvasContext.fillText(
-        `Angle: ${angle.toFixed(0)}\u00B0`,
-        (5.125 * width) / 6,
-        (1.25 * height) / 24
-      );
-      break;
-    default:
-      canvasContext.fillRect(0, 0, width / 6, height / 12);
-      canvasContext.fillStyle = "white";
-      canvasContext.fillText(
-        `Angle: ${angle.toFixed(0)}\u00B0`,
-        (0.125 * width) / 6,
-        (1.25 * height) / 24
-      );
-      break;
-  }
+  canvasContext.save();
+  canvasContext.translate(canvasElement.width, 0);
+  canvasContext.scale(-1, 1);
+  const fillX = side === "left" ? 0 : side === "right" ? (width * 5) / 6 : 0;
+  const fillY = 0;
+  const widthX = height > width ? height / 6 : width / 6;
+  const widthY = (height * 2) / 12;
+  const textX =
+    side === "left"
+      ? (0.125 * width) / 6
+      : side === "right"
+      ? (5.125 * width) / 6
+      : (0.125 * width) / 6;
+  const angleY = (1.25 * height) / 24;
+  const countY = (2.25 * height) / 24;
+  const stageY = (3.25 * height) / 24;
+
+  canvasContext.font = `${Math.round(widthX / 10).toString()}px Arial`;
+  canvasContext.fillStyle = "black";
+  canvasContext.fillRect(fillX, fillY, widthX, widthY);
+  canvasContext.fillStyle = "white";
+  canvasContext.fillText(`Angle: ${angle.toFixed(0)}\u00B0`, textX, angleY);
+  canvasContext.fillText(`Count: ${count}`, textX, countY);
+  canvasContext.fillText(stage.toUpperCase(), textX, stageY);
+  canvasContext.restore();
 };
+
 export const twoSideWorkout = (
   threshold: { down: number; up: number },
   leftAngle: number,
@@ -207,10 +202,15 @@ export const showDemo = (
   rightLegAngle
 ) => {
   const canvasContext = canvasElement.getContext("2d");
+  canvasContext.save();
+  canvasContext.translate(canvasElement.width, 0);
+  canvasContext.scale(-1, 1);
   const width = canvasElement.getBoundingClientRect().width;
   const height = canvasElement.getBoundingClientRect().height;
   const textHeight = height / 9 / 3;
-  canvasContext.font = `${Math.round(height / 40).toString()}px Arial`;
+  canvasContext.font = `${Math.round(
+    (height > width ? width : height) / 40
+  ).toString()}px Arial`;
   canvasContext.fillStyle = "black";
   canvasContext.fillRect((2 * width) / 3, 0, width / 3, height / 3);
   canvasContext.fillRect(0, 0, width / 3, height / 3);
@@ -323,4 +323,5 @@ export const showDemo = (
     10 + (2 * width) / 3,
     textHeight * 8
   );
+  canvasContext.restore();
 };
