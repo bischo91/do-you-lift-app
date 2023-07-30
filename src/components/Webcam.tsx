@@ -467,6 +467,7 @@ export const Webcam = ({ workoutOption }) => {
             position: "absolute",
             left: "0px",
             top: "0px",
+            width: "100%",
           }}
         ></canvas>
         {/* <script src="built/index.js"></script> */}
