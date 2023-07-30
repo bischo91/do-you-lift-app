@@ -132,7 +132,7 @@ export const writeOnCanvas = (
   const countY = (2.25 * height) / 24;
   const stageY = (3.25 * height) / 24;
 
-  canvasContext.font = `${Math.round(height / 30).toString()}px Arial`;
+  canvasContext.font = `${Math.round(widthX / 10).toString()}px Arial`;
   canvasContext.fillStyle = "black";
   canvasContext.fillRect(fillX, fillY, widthX, widthY);
   canvasContext.fillStyle = "white";

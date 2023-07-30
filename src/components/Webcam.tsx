@@ -189,7 +189,6 @@ export const Webcam = ({ workoutOption }) => {
           performance.now(),
           (result) => {
             canvasCtx.save();
-            canvasCtx.font = "8px Arial";
             canvasCtx.drawImage(
               videoRef.current,
               0,
