@@ -105,23 +105,21 @@ export const Webcam = ({ workoutOption }) => {
               ...videoStream.getVideoTracks(),
               ...stream.getVideoTracks(),
             ]);
+            mediaRecorder = new MediaRecorder(mixed);
+            mediaRecorder.ondataavailable = (e) => {
+              chunks.push(e.data);
+            };
+            mediaRecorder.onstop = (e) => {
+              const blob = new Blob(chunks, { type: "video/mp4" });
+              const videoURL = URL.createObjectURL(blob);
+              aElement = downloadRef.current;
+              aElement.href = videoURL;
+              chunks = [];
+              setIsDownloadReady(true);
+            };
             recordRef.current.addEventListener("click", () => {
-              mediaRecorder = new MediaRecorder(mixed);
-              mediaRecorder.ondataavailable = (e) => {
-                chunks.push(e.data);
-              };
-              mediaRecorder.onstop = (e) => {
-                const blob = new Blob(chunks, { type: "video/mp4" });
-                const videoURL = URL.createObjectURL(blob);
-                aElement = downloadRef.current;
-                aElement.href = videoURL;
-                chunks = [];
-                setIsRecording(false);
-                setIsDownloadReady(true);
-              };
               setIsRecording(true);
               setIsDownloadReady(false);
-              console.log(isRecording);
               return mediaRecorder.start();
             });
 
@@ -132,7 +130,6 @@ export const Webcam = ({ workoutOption }) => {
 
             videoElement.srcObject = stream;
             videoElement.addEventListener("loadeddata", predictWebcam);
-            // setIsStreaming(true);
           });
       }
     };
@@ -361,24 +358,27 @@ export const Webcam = ({ workoutOption }) => {
 
   return (
     <div>
-      <div className={`${workoutOption ?? "hidden"} w-1/6 m-auto`}>
-        <button
-          ref={enableWebcamRef}
-          className="w-full p-3 bg-gray-400 rounded-lg"
-        >
-          <span className="">Start</span>
+      <div className={`${workoutOption ?? "hidden"} w-full m-auto`}>
+        <button ref={enableWebcamRef} className="">
+          <span className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100">
+            Start
+          </span>
         </button>
       </div>
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
-      {isLoading && <span>Loading...</span>}
+      {isLoading && (
+        <span className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100">
+          Loading...
+        </span>
+      )}
       <div
         className={`${
-          isStreaming ? "none" : "hidden"
+          !isStreaming && "hidden"
         } w-full h-full m-auto md:w-2/3 lg:w-1/2`}
       >
-        <div className={"inline-flex w-full m-auto h-full"}>
+        <div className="inline-flex w-full h-full m-auto">
           <button
             ref={restartRef}
             className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100"
@@ -396,7 +396,7 @@ export const Webcam = ({ workoutOption }) => {
                 src={RecordIcon}
                 alt="Record"
                 className="w-10 h-10 m-auto mr-2"
-              />{" "}
+              />
               <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
                 Record
               </span>
@@ -467,11 +467,9 @@ export const Webcam = ({ workoutOption }) => {
             position: "absolute",
             left: "0px",
             top: "0px",
-            width: "100%",
-            maxHeight: "75vh",
           }}
         ></canvas>
-        <script src="built/index.js"></script>
+        {/* <script src="built/index.js"></script> */}
       </div>
     </div>
   );

@@ -1,0 +1,30 @@
+{
+  "armCurl": {
+    "label": "Arm Curl",
+    "angle": {
+      "down": 120,
+      "up": 45
+    },
+    "time": 0.75,
+    "isTwoSide": true
+  },
+  "squat": {
+    "label": "Squat",
+    "angle": {
+      "down": 100,
+      "up": 150
+    },
+    "time": 0.75
+  },
+  "benchPress": {
+    "label": "Bench Press",
+    "angle": {
+      "down": 50,
+      "up": 120
+    },
+    "time": 0.75
+  },
+  "demo": {
+    "label": "Demo"
+  }
+}
