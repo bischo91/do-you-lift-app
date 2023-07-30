@@ -27,6 +27,7 @@ export const Webcam = ({ workoutOption }) => {
   const restartRef = useRef(null);
   const recordRef = useRef(null);
   const stopRef = useRef(null);
+  const [isMirrored, setIsMirrored] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isDownloadReady, setIsDownloadReady] = useState(false);
@@ -62,7 +63,7 @@ export const Webcam = ({ workoutOption }) => {
       const margin = Math.abs(videoActualWidth - videoWidth) / 2;
       canvasElement.style.height = videoElement.offsetHeight.toString() + "px";
       canvasElement.style.width =
-        Math.round(canvasElement.style.height * cameraAspectRatio).toString() +
+        Math.round(videoElement.offsetHeight * cameraAspectRatio).toString() +
         "px";
       canvasElement.style.left = Math.round(margin).toString() + "px";
     };
@@ -100,7 +101,24 @@ export const Webcam = ({ workoutOption }) => {
             cameraAspectRatio = stream
               .getVideoTracks()[0]
               .getSettings().aspectRatio;
-            const videoStream = canvasRef.current.captureStream(30);
+            const frameRate = stream
+              .getVideoTracks()[0]
+              .getSettings().frameRate;
+            if (stream.getVideoTracks()[0].getSettings().facingMode === "user")
+              setIsMirrored(false);
+
+            console.log(navigator.mediaSession.metadata);
+            console.log(navigator.mediaDevices);
+            // console.log(navigator.mediaDevices.getDisplayMedia());
+            console.log(navigator.mediaDevices.getSupportedConstraints());
+            // console.log(navigator.mediaDevices.getUserMedia());
+            console.log(stream.getVideoTracks());
+            console.log(stream.getVideoTracks().length);
+            console.log(stream.getVideoTracks()[0]);
+            console.log(stream.getVideoTracks()[0].getSettings());
+            console.log(stream.getVideoTracks()[0].getCapabilities());
+            console.log(stream.getVideoTracks()[0].getConstraints());
+            const videoStream = canvasRef.current.captureStream(frameRate);
             const mixed = new MediaStream([
               ...videoStream.getVideoTracks(),
               ...stream.getVideoTracks(),
@@ -456,6 +474,9 @@ export const Webcam = ({ workoutOption }) => {
             width: "100%",
             height: "auto",
             maxHeight: "75vh",
+            // transform: `${isMirrored && "rotateY(180deg)"}`,
+            // -webkit-transform:"rotateY(180deg)", /* Safari and Chrome */
+            // -moz-transform:"rotateY(180deg)" /* Firefox */
           }}
           autoPlay
           playsInline
@@ -466,7 +487,8 @@ export const Webcam = ({ workoutOption }) => {
             position: "absolute",
             left: "0px",
             top: "0px",
-            width: "100%",
+            maxHeight: "75vh",
+            // width: "100%",
           }}
         ></canvas>
         {/* <script src="built/index.js"></script> */}
