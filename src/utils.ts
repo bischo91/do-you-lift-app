@@ -118,6 +118,9 @@ export const writeOnCanvas = (
   const width = canvasElement.getBoundingClientRect().width;
   const height = canvasElement.getBoundingClientRect().height;
   const canvasContext = canvasElement.getContext("2d");
+  canvasContext.save();
+  canvasContext.translate(canvasElement.width, 0);
+  canvasContext.scale(-1, 1);
   const fillX = side === "left" ? 0 : side === "right" ? (width * 5) / 6 : 0;
   const fillY = 0;
   const widthX = height > width ? height / 6 : width / 6;
@@ -139,6 +142,7 @@ export const writeOnCanvas = (
   canvasContext.fillText(`Angle: ${angle.toFixed(0)}\u00B0`, textX, angleY);
   canvasContext.fillText(`Count: ${count}`, textX, countY);
   canvasContext.fillText(stage.toUpperCase(), textX, stageY);
+  canvasContext.restore();
 };
 
 export const twoSideWorkout = (
