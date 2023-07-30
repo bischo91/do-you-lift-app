@@ -202,6 +202,9 @@ export const showDemo = (
   rightLegAngle
 ) => {
   const canvasContext = canvasElement.getContext("2d");
+  canvasContext.save();
+  canvasContext.translate(canvasElement.width, 0);
+  canvasContext.scale(-1, 1);
   const width = canvasElement.getBoundingClientRect().width;
   const height = canvasElement.getBoundingClientRect().height;
   const textHeight = height / 9 / 3;
@@ -320,4 +323,5 @@ export const showDemo = (
     10 + (2 * width) / 3,
     textHeight * 8
   );
+  canvasContext.restore();
 };

@@ -163,7 +163,6 @@ export const Webcam = ({ workoutOption }) => {
     let lastTimeRightStageChange;
 
     //   requestAnimationFrame(drawOnCanvas); for drawing canvas?
-
     const predictWebcam = async () => {
       if (restartRef.current)
         restartRef.current.addEventListener("click", () => {
@@ -184,6 +183,7 @@ export const Webcam = ({ workoutOption }) => {
         });
         handleResize();
         initialize = false;
+        setIsLoading(false);
       }
 
       if (lastVideoTime !== videoRef.current.currentTime) {
@@ -195,8 +195,8 @@ export const Webcam = ({ workoutOption }) => {
           videoRef.current,
           performance.now(),
           (result) => {
-            canvasCtx.translate(canvasElement.width, 0);
-            canvasCtx.scale(-1, 1);
+            // canvasCtx.translate(canvasElement.width, 0);
+            // canvasCtx.scale(-1, 1);
             canvasCtx.drawImage(
               videoRef.current,
               0,
@@ -358,7 +358,6 @@ export const Webcam = ({ workoutOption }) => {
       if (webcamRunning === true) {
         enableWebcamButton.hidden = true;
         setIsStreaming(true);
-        setIsLoading(false);
         window.requestAnimationFrame(predictWebcam);
       }
     };
