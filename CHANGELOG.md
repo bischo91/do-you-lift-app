@@ -2,9 +2,15 @@
 
 <br />
 
-## [0.3.3] - 2023.07.23
+## [0.4.0] - 2023.07.23
 
-### Fixed many things (style button, download feature, recording etc)
+### Added
+
+- Style for buttons for different states
+- Loading buttonFixed many things
+- Recording feature
+- Download feature
+- Count time threshold to ignore fast reps
 
 ## [0.3.2] - 2023.07.23
 
