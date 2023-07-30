@@ -62,7 +62,7 @@ export const Webcam = ({ workoutOption }) => {
       const margin = Math.abs(videoActualWidth - videoWidth) / 2;
       canvasElement.style.height = videoElement.offsetHeight.toString() + "px";
       canvasElement.style.width =
-        Math.round(videoElement.offsetHeight * cameraAspectRatio).toString() +
+        Math.round(canvasElement.style.height * cameraAspectRatio).toString() +
         "px";
       canvasElement.style.left = Math.round(margin).toString() + "px";
     };
