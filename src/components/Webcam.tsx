@@ -86,7 +86,8 @@ export const Webcam = ({ workoutOption }) => {
     enableWebcamButton = enableWebcamRef.current;
 
     const enableCam = () => {
-      if (!webcamRunning) {
+      if (!webcamRunning && !enableWebcamRef.current.hidden) {
+        console.log("if");
         setIsLoading(true);
         webcamRunning = true;
         enableWebcamRef.current.hidden = true;
@@ -116,7 +117,7 @@ export const Webcam = ({ workoutOption }) => {
             mediaRecorder.ondataavailable = (e) => {
               chunks.push(e.data);
             };
-            mediaRecorder.onstop = (e) => {
+            mediaRecorder.onstop = () => {
               const blob = new Blob(chunks, { type: "video/mp4" });
               const videoURL = URL.createObjectURL(blob);
               aElement = downloadRef.current;
@@ -466,7 +467,7 @@ export const Webcam = ({ workoutOption }) => {
             height: "auto",
             maxHeight: "75vh",
           }}
-          autoPlay={true}
+          // autoPlay={true}
           playsInline={true}
           muted={true}
         ></video>
