@@ -183,7 +183,6 @@ export const Webcam = ({ workoutOption }) => {
         });
         handleResize();
         initialize = false;
-        setIsLoading(false);
       }
 
       if (lastVideoTime !== videoRef.current.currentTime) {
@@ -352,6 +351,7 @@ export const Webcam = ({ workoutOption }) => {
             // canvasCtx.restore();
           }
         );
+        setIsLoading(false);
       }
 
       // Call this function again to keep predicting when the browser is ready.
@@ -466,8 +466,9 @@ export const Webcam = ({ workoutOption }) => {
             height: "auto",
             maxHeight: "75vh",
           }}
-          autoPlay
-          playsInline
+          autoPlay={true}
+          playsInline={true}
+          muted={true}
         ></video>
         <canvas
           ref={canvasRef}
