@@ -109,8 +109,11 @@ export const Webcam = ({ workoutOption }) => {
       const margin = Math.abs(videoActualWidth - videoWidth) / 2;
       canvasElement.style.height = videoElement.offsetHeight.toString() + "px";
       canvasElement.style.width =
-        Math.round(videoElement.offsetHeight * cameraAspectRatio).toString() +
-        "px";
+        videoElement.offsetHeight * cameraAspectRatio > window.screen.width
+          ? Math.round(window.screen.width * 0.9).toString() + "px"
+          : Math.round(
+              videoElement.offsetHeight * cameraAspectRatio
+            ).toString() + "px";
       canvasElement.style.left = Math.round(margin).toString() + "px";
     };
     var mediaRecorder;
@@ -461,7 +464,6 @@ export const Webcam = ({ workoutOption }) => {
         enableWebcamButton.hidden = true;
         setIsStreaming(true);
         window.requestAnimationFrame(predictWebcam);
-        handleResize();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -596,7 +598,6 @@ export const Webcam = ({ workoutOption }) => {
             position: "absolute",
             left: "0px",
             top: "0px",
-            maxWidth: "100vh",
             maxHeight: "75vh",
           }}
         ></canvas>
