@@ -118,7 +118,9 @@ export const Webcam = ({ workoutOption }) => {
               chunks.push(e.data);
             };
             mediaRecorder.onstop = () => {
-              const blob = new Blob(chunks, { type: "video/mp4" });
+              const blob = new Blob(chunks, {
+                type: "video/mp4",
+              });
               const videoURL = URL.createObjectURL(blob);
               aElement = downloadRef.current;
               aElement.href = videoURL;
@@ -457,20 +459,37 @@ export const Webcam = ({ workoutOption }) => {
       </div>
 
       <div style={{ position: "relative", margin: "10px" }}>
-        <video
-          ref={videoRef}
-          style={{
-            position: "absolute",
-            left: "0px",
-            top: "0px",
-            width: "100%",
-            height: "auto",
-            maxHeight: "75vh",
-          }}
-          // autoPlay={true}
-          playsInline={true}
-          muted={true}
-        ></video>
+        {navigator?.userAgent.includes("iPhone" || "iPod" || "iPad") ? (
+          <video
+            ref={videoRef}
+            style={{
+              position: "absolute",
+              left: "0px",
+              top: "0px",
+              width: "100%",
+              height: "auto",
+              maxHeight: "75vh",
+            }}
+            autoPlay={true}
+            playsInline={true}
+            muted={true}
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            style={{
+              position: "absolute",
+              left: "0px",
+              top: "0px",
+              width: "100%",
+              height: "auto",
+              maxHeight: "75vh",
+            }}
+            autoPlay
+            playsInline
+            muted
+          />
+        )}
         <canvas
           ref={canvasRef}
           style={{
