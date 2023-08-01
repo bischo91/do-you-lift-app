@@ -461,6 +461,7 @@ export const Webcam = ({ workoutOption }) => {
         enableWebcamButton.hidden = true;
         setIsStreaming(true);
         window.requestAnimationFrame(predictWebcam);
+        handleResize();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
