@@ -4,6 +4,7 @@ import {
   PoseLandmarker,
 } from "@mediapipe/tasks-vision";
 import React, { useEffect, useRef, useState } from "react";
+// import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import {
   discretizeAngle,
   getAngles,
@@ -17,6 +18,7 @@ import {
 import DownloadIcon from "../asset/download.png";
 import RecordIcon from "../asset/record.png";
 import StopIcon from "../asset/stop.png";
+import ysFixWebbDuration from "fix-webm-duration";
 
 export const Webcam = ({ workoutOption }) => {
   const videoRef = useRef(null);
@@ -50,12 +52,57 @@ export const Webcam = ({ workoutOption }) => {
     });
   };
 
+  // const readAsArrayBuffer = (blob) => {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+  //     reader.readAsArrayBuffer(blob);
+  //     reader.onloadend = () => {
+  //       resolve(reader.result);
+  //     };
+  //     reader.onerror = (ev: any) => {
+  //       reject(ev.error);
+  //     };
+  //   });
+  // };
+
+  // const injectMetadata = (blob) => {
+  //   const decoder = new Decoder();
+  //   const reader = new Reader();
+  //   reader.logging = false;
+  //   reader.drop_default_duration = false;
+
+  //   readAsArrayBuffer(blob).then((buffer: any) => {
+  //     console.log(buffer);
+  //     const elms = decoder.decode(buffer);
+  //     elms.forEach((elm) => {
+  //       reader.read(elm);
+  //       console.log(elm);
+  //     });
+  //     reader.stop();
+  //     console.log(reader);
+  //     let refinedMetadataBuf = tools.makeMetadataSeekable(
+  //       reader?.metadatas,
+  //       reader?.duration,
+  //       reader?.cues
+  //     );
+  //     let body = buffer.slice(reader.metadataSize);
+  //     let result = new Blob([refinedMetadataBuf, body], { type: blob.type });
+
+  //     blob = result;
+
+  //     console.log("finished recording:", blob);
+  //   });
+  // };
+
   useEffect(() => {
     if (!navigator.mediaDevices?.getUserMedia)
       console.warn("getUserMedia() is not supported by your browser");
 
     let cameraAspectRatio;
     const handleResize = () => {
+      console.log(videoElement.offsetHeight);
+      console.log(window.screen.availHeight);
+      console.log(window.screen.height);
       const videoHeight = videoElement.offsetHeight;
       const videoWidth = videoElement.offsetWidth;
       const videoActualWidth = videoHeight * cameraAspectRatio;
@@ -87,7 +134,6 @@ export const Webcam = ({ workoutOption }) => {
 
     const enableCam = () => {
       if (!webcamRunning && !enableWebcamRef.current.hidden) {
-        console.log("if");
         setIsLoading(true);
         webcamRunning = true;
         enableWebcamRef.current.hidden = true;
@@ -98,9 +144,10 @@ export const Webcam = ({ workoutOption }) => {
         navigator.mediaDevices
           .getUserMedia({
             video: { facingMode: "user" },
-            audio: false,
+            audio: true,
           })
           .then((stream) => {
+            let startTime;
             cameraAspectRatio = stream
               .getVideoTracks()[0]
               .getSettings().aspectRatio;
@@ -113,23 +160,75 @@ export const Webcam = ({ workoutOption }) => {
               ...videoStream.getVideoTracks(),
               ...stream.getVideoTracks(),
             ]);
-            mediaRecorder = new MediaRecorder(mixed);
+            mediaRecorder = new MediaRecorder(
+              mixed // mimeType: "video/webm",
+            );
+            // mediaRecorder.mimeType =
+            //   'video/mp4; codecs="avc1.42E01E, mp4a.40.2';
+            // mediaRecorder.width = 800;
+            // mediaRecorder.height = 480;
             mediaRecorder.ondataavailable = (e) => {
               chunks.push(e.data);
             };
-            mediaRecorder.onstop = () => {
+            mediaRecorder.onstop = async () => {
+              let duration = Date.now() - startTime;
               const blob = new Blob(chunks, {
                 type: "video/mp4",
               });
-              const videoURL = URL.createObjectURL(blob);
-              aElement = downloadRef.current;
-              aElement.href = videoURL;
-              chunks = [];
-              setIsDownloadReady(true);
+
+              ysFixWebbDuration(blob, duration, (newBlob) => {
+                const videoURL = URL.createObjectURL(newBlob);
+
+                aElement = downloadRef.current;
+                aElement.href = videoURL;
+                chunks = [];
+                setIsDownloadReady(true);
+              });
+              // const file = new File([blob], "test.mp4", { type: "video/mp4" });
+              // const filesArray = [file];
+              // if (
+              //   navigator.canShare &&
+              //   navigator.canShare({ files: filesArray })
+              // ) {
+              //   await navigator.share({
+              //     files: filesArray,
+              //   });
+              // }
+              // const ffmpeg = createFFmpeg({
+              //   corePath:
+              //     "https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js",
+              //   log: true,
+              // });
+
+              // if (!ffmpeg.isLoaded()) {
+              // const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+              // await ffmpeg.load();
+
+              // const uint8Chunks = chunks.map(
+              //   (chunk) => new Uint8Array(chunk.arrayBuffer())
+              // );
+              // const webmBlob = new Blob(uint8Chunks, { type: "video/webm" });
+
+              // const webmData = new Uint8Array(await webmBlob.arrayBuffer());
+
+              // ffmpeg.FS("writeFile", "input.webm", webmData);
+              // await ffmpeg.run("-i", "input.webm", "output.mp4");
+              // const mp4Data = ffmpeg.FS("readFile", "output.mp4");
+
+              // const mp4Blob = new Blob([mp4Data.buffer], { type: "video/mp4" });
+
+              // const videoURL = URL.createObjectURL(blob);
+
+              // aElement = downloadRef.current;
+              // aElement.href = videoURL;
+              // chunks = [];
+              // setIsDownloadReady(true);
+              // }
             };
             recordRef.current.addEventListener("click", () => {
               setIsRecording(true);
               setIsDownloadReady(false);
+              startTime = Date.now();
               return mediaRecorder.start();
             });
 
@@ -182,7 +281,7 @@ export const Webcam = ({ workoutOption }) => {
         await poseLandmarker.setOptions({
           runningMode: "VIDEO",
           minPoseDetectionConfidence: 0.8,
-          minPosePresenceConfidence: 0.5,
+          minPosePresenceConfidence: 0.9,
         });
         handleResize();
         initialize = false;
@@ -496,6 +595,7 @@ export const Webcam = ({ workoutOption }) => {
             position: "absolute",
             left: "0px",
             top: "0px",
+            maxWidth: "100vh",
             maxHeight: "75vh",
           }}
         ></canvas>
