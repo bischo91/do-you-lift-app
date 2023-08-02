@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import Select from "react-select";
+import { Settings } from "../components/settings/Settings";
 import { Webcam } from "../components/Webcam";
 
 export const MainContainer = () => {
@@ -21,13 +22,17 @@ export const MainContainer = () => {
   return (
     <div className="flex flex-col space-y-4">
       <h1 className="m-auto font-bold">Do You Lift?</h1>
-      <div>
+      <div className="flex w-full m-auto">
         <Select
-          defaultValue={"Select T"}
+          defaultValue={"Select"}
           onChange={changeOption}
           value={selectedOption}
           options={options}
+          className="w-1/2 m-auto"
         />
+        <div className="m-auto">
+          <Settings />
+        </div>
       </div>
       <Webcam workoutOption={selectedOption} />
     </div>
