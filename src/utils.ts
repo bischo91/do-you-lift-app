@@ -123,7 +123,7 @@ export const writeOnCanvas = (
   canvasContext.scale(-1, 1);
   const fillX = side === "left" ? 0 : side === "right" ? (width * 5) / 6 : 0;
   const fillY = 0;
-  const widthX = height > width ? height / 6 : width / 6;
+  const widthX = width / 6;
   const widthY = (height * 2) / 12;
   const textX =
     side === "left"
