@@ -478,6 +478,7 @@ export const Webcam = ({ workoutOption }) => {
           </span>
         </button>
       </div>
+
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
@@ -571,6 +572,7 @@ export const Webcam = ({ workoutOption }) => {
               width: "100%",
               height: "auto",
               maxHeight: "75vh",
+              maxWidth: "100vw",
             }}
             autoPlay={true}
             playsInline={true}
@@ -586,6 +588,7 @@ export const Webcam = ({ workoutOption }) => {
               width: "100%",
               height: "auto",
               maxHeight: "75vh",
+              maxWidth: "100vw",
             }}
             autoPlay
             playsInline
