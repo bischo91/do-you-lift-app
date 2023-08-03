@@ -1,12 +1,39 @@
 import { Dialog, Transition } from "@headlessui/react";
 import React, { Fragment, useState } from "react";
 
+import Select from "react-select";
 import workout from "./workout.json";
 
 export const Settings = () => {
   let [isOpen, setIsOpen] = useState(false);
   console.log(workout);
+  const options = [
+    { value: "armCurl", label: "Arm Curl" },
+    { value: "squat", label: "Squat" },
+    { value: "benchPress", label: "Bench Press" },
+    // { value: 'deadlift', label: 'Deadlift' },
+  ];
+  const [selectedOption, setSelectedOption] = useState(null);
+  //   const [angleUp, setAngleUp] = useState(null);
+  //   const [angleDown, setAngleDown] = useState(null);
+  //   const [thresholdTime, setThresholdTime] = useState(null)
+  const [workoutSetting, setWorkoutSetting] = useState(workout);
+  const changeOption = (selected) => {
+    if (selected !== selectedOption) setSelectedOption(selected);
+  };
 
+  const changeAngleUp = (e) => {
+    console.log(e.target.value);
+    console.log(workoutSetting);
+    workout[selectedOption?.value].angle.up = Number(e.target.value);
+    console.log(workout);
+    setWorkoutSetting((prevState) => ({
+      ...prevState,
+      [selectedOption.value]: { angle: { up: Number(e.target.value) } },
+    }));
+    console.log(workoutSetting);
+    // setWorkoutSetting()
+  };
   const closeModal = () => {
     setIsOpen(false);
   };
@@ -55,22 +82,52 @@ export const Settings = () => {
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Settings
+                    Workout Settings
                   </Dialog.Title>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">Workout Settings</p>
-                    {Object.keys(workout).map(
-                      (e) =>
-                        workout[e].label !== "Demo" && (
-                          <li>
-                            <span>{workout[e].label}:</span>
-                            <span>Angle: Up:Input{workout[e].angle.up}</span>
-                            <span>
-                              Angle: Down:Input{workout[e].angle.down}
-                            </span>
-                          </li>
-                        )
-                    )}
+                    <h3 className="text-md">
+                      <Select
+                        defaultValue={"Select"}
+                        onChange={changeOption}
+                        value={selectedOption}
+                        options={options}
+                        placeholder={"Select Workout"}
+                        className="w-full m-auto my-4"
+                      />
+                    </h3>
+                    <label className="block mb-2 text-sm font-medium text-gray-900">
+                      Angle for Up:
+                    </label>
+                    <div className="relative text-gray-700">
+                      <input
+                        className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                        type="number"
+                        name="angleUp"
+                        value={workoutSetting[selectedOption?.value]?.angle.up}
+                        onChange={changeAngleUp}
+                      />
+                      <button className="absolute inset-y-0 right-0 flex items-center px-4 font-bold text-white bg-blue-500 rounded-r-lg hover:bg-blue-300">
+                        Set Default
+                      </button>
+                    </div>
+                    <label className="block mb-2 text-sm font-medium text-gray-900">
+                      Angle for Down:
+                    </label>
+                    <input
+                      className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                      type="number"
+                      name="angleDown"
+                      value={workout[selectedOption?.value]?.angle.down}
+                    />
+                    <label className="block mb-2 text-sm font-medium text-gray-900">
+                      Time:
+                    </label>
+                    <input
+                      className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                      type="number"
+                      name="time"
+                      value={workout[selectedOption?.value]?.time}
+                    />
                   </div>
 
                   <div className="mt-4">
