@@ -2,6 +2,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import React, { Fragment, useState } from "react";
 
 import Select from "react-select";
+import { SettingsInput } from "./SettingsInput";
 import workout from "./workout.json";
 
 export const Settings = () => {
@@ -14,25 +15,39 @@ export const Settings = () => {
     // { value: 'deadlift', label: 'Deadlift' },
   ];
   const [selectedOption, setSelectedOption] = useState(null);
-  //   const [angleUp, setAngleUp] = useState(null);
-  //   const [angleDown, setAngleDown] = useState(null);
-  //   const [thresholdTime, setThresholdTime] = useState(null)
-  const [workoutSetting, setWorkoutSetting] = useState(workout);
+
+  // set input states for angle up, down, time
+  // on save settings define workout settings that can pass to parents or redux
+  // on setDefault call workout's default
+  const [angleUpInput, setAngleUpInput] = useState(null);
+  const [angleDownInput, setAngleDownInput] = useState(null);
+  const [timeThresholdInput, setTimeThresholdInput] = useState(null);
+
   const changeOption = (selected) => {
     if (selected !== selectedOption) setSelectedOption(selected);
+    setAngleUpInput(workout[selected?.value]?.angle?.up);
+    setAngleDownInput(workout[selected?.value]?.angle?.down);
+    setTimeThresholdInput(workout[selected?.value]?.time);
+    setSelectedOption(selected);
+  };
+  const changeAngleUp = (e) => {
+    setAngleUpInput(Number(e.target.value));
+  };
+  const changeAngleDown = (e) => {
+    setAngleDownInput(Number(e.target.value));
+  };
+  const changeThreholdTime = (e) => {
+    setTimeThresholdInput(Number(e.target.value));
   };
 
-  const changeAngleUp = (e) => {
-    console.log(e.target.value);
-    console.log(workoutSetting);
-    workout[selectedOption?.value].angle.up = Number(e.target.value);
-    console.log(workout);
-    setWorkoutSetting((prevState) => ({
-      ...prevState,
-      [selectedOption.value]: { angle: { up: Number(e.target.value) } },
-    }));
-    console.log(workoutSetting);
-    // setWorkoutSetting()
+  const setDefaultAngleUp = () => {
+    console.log("set default");
+    setAngleUpInput(workout[selectedOption?.value]?.angle?.up);
+    (document.getElementById("angle_up_field") as HTMLInputElement).value =
+      workout[selectedOption?.value]?.angle?.up;
+  };
+  const saveSettings = () => {
+    console.log(angleUpInput);
   };
   const closeModal = () => {
     setIsOpen(false);
@@ -95,46 +110,69 @@ export const Settings = () => {
                         className="w-full m-auto my-4"
                       />
                     </h3>
+                    <SettingsInput
+                      changeInput={changeAngleUp}
+                      setDefaultInput={setDefaultAngleUp}
+                      inputValue={angleUpInput}
+                    />
                     <label className="block mb-2 text-sm font-medium text-gray-900">
                       Angle for Up:
                     </label>
-                    <div className="relative text-gray-700">
+                    <div className="relative mb-4 text-gray-700">
                       <input
                         className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
                         type="number"
                         name="angleUp"
-                        value={workoutSetting[selectedOption?.value]?.angle.up}
                         onChange={changeAngleUp}
+                        defaultValue={angleUpInput}
+                        id="angle_up_field"
+                        onFocus={(e) => (e.target.value = "")}
+                        onBlur={() => {
+                          (
+                            document.getElementById(
+                              "angle_up_field"
+                            ) as HTMLInputElement
+                          ).value = angleUpInput;
+                        }}
                       />
-                      <button className="absolute inset-y-0 right-0 flex items-center px-4 font-bold text-white bg-blue-500 rounded-r-lg hover:bg-blue-300">
+                      <button
+                        className="absolute inset-y-0 right-0 flex items-center px-4 font-bold text-white bg-blue-500 rounded-r-lg hover:bg-blue-300"
+                        onClick={setDefaultAngleUp}
+                      >
                         Set Default
                       </button>
                     </div>
                     <label className="block mb-2 text-sm font-medium text-gray-900">
                       Angle for Down:
                     </label>
-                    <input
-                      className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                      type="number"
-                      name="angleDown"
-                      value={workout[selectedOption?.value]?.angle.down}
-                    />
+                    <div className="relative mb-4 text-gray-700">
+                      <input
+                        className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                        type="number"
+                        name="angleUp"
+                        onChange={changeAngleUp}
+                        defaultValue={angleUpInput}
+                        id="angle_up_field"
+                        onFocus={(e) => (e.target.value = "")}
+                      />
+                      <button
+                        className="absolute inset-y-0 right-0 flex items-center px-4 font-bold text-white bg-blue-500 rounded-r-lg hover:bg-blue-300"
+                        onClick={setDefaultAngleUp}
+                      >
+                        Set Default
+                      </button>
+                    </div>
                     <label className="block mb-2 text-sm font-medium text-gray-900">
-                      Time:
+                      Threshold Time:
                     </label>
-                    <input
-                      className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                      type="number"
-                      name="time"
-                      value={workout[selectedOption?.value]?.time}
-                    />
                   </div>
 
                   <div className="mt-4">
                     <button
                       type="button"
                       className="inline-flex justify-center px-4 py-2 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={closeModal}
+                      onClick={saveSettings}
+                      disabled={!angleUpInput}
                     >
                       Save Settings
                     </button>
