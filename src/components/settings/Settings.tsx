@@ -7,7 +7,6 @@ import workout from "./workout.json";
 
 export const Settings = () => {
   let [isOpen, setIsOpen] = useState(false);
-  console.log(workout);
   const options = [
     { value: "armCurl", label: "Arm Curl" },
     { value: "squat", label: "Squat" },
@@ -21,33 +20,71 @@ export const Settings = () => {
   // on setDefault call workout's default
   const [angleUpInput, setAngleUpInput] = useState(null);
   const [angleDownInput, setAngleDownInput] = useState(null);
-  const [timeThresholdInput, setTimeThresholdInput] = useState(null);
+  const [thresholdTime, setThresholdTime] = useState(null);
 
   const changeOption = (selected) => {
     if (selected !== selectedOption) setSelectedOption(selected);
-    setAngleUpInput(workout[selected?.value]?.angle?.up);
-    setAngleDownInput(workout[selected?.value]?.angle?.down);
-    setTimeThresholdInput(workout[selected?.value]?.time);
+    setAngleUpInput(workout[selected?.value]?.defaultSettings?.angleUp);
+    setAngleDownInput(workout[selected?.value]?.defaultSettings?.angleDown);
+    setThresholdTime(workout[selected?.value]?.defaultSettings?.thresholdTime);
     setSelectedOption(selected);
   };
-  const changeAngleUp = (e) => {
-    setAngleUpInput(Number(e.target.value));
-  };
-  const changeAngleDown = (e) => {
-    setAngleDownInput(Number(e.target.value));
-  };
-  const changeThreholdTime = (e) => {
-    setTimeThresholdInput(Number(e.target.value));
+
+  const changeSetting = (e, settingKey) => {
+    if (settingKey === "angleUp") setAngleUpInput(Number(e.target.value));
+    else if (settingKey === "angleDown")
+      setAngleDownInput(Number(e.target.value));
+    else if (settingKey === "thresholdTime")
+      setThresholdTime(Number(e.target.value));
   };
 
-  const setDefaultAngleUp = () => {
-    console.log("set default");
-    setAngleUpInput(workout[selectedOption?.value]?.angle?.up);
-    (document.getElementById("angle_up_field") as HTMLInputElement).value =
-      workout[selectedOption?.value]?.angle?.up;
+  const setToDefault = (settingKey) => {
+    const defaultSettings = workout[selectedOption?.value]?.defaultSettings;
+    if (settingKey === "angleUp") setAngleUpInput(defaultSettings?.angleUp);
+    else if (settingKey === "angleDown")
+      setAngleDownInput(defaultSettings?.angleDown);
+    else if (settingKey === "thresholdTime")
+      setThresholdTime(defaultSettings?.thresholdTime);
   };
+
+  const getInput = (settingKey) => {
+    if (settingKey === "angleUp") return angleUpInput;
+    else if (settingKey === "angleDown") return angleDownInput;
+    else if (settingKey === "thresholdTime") return thresholdTime;
+  };
+
+  // const changeAngleUp = (e) => {
+  //   setAngleUpInput(Number(e.target.value));
+  // };
+  // const changeAngleDown = (e) => {
+  //   setAngleDownInput(Number(e.target.value));
+  // };
+  // const changethresholdTime = (e) => {
+  //   setThresholdTime(Number(e.target.value));
+  // };
+
+  // const setDefaultAngleUp = () => {
+  //   setAngleUpInput(workout[selectedOption?.value]?.angle?.up);
+  //   (document.getElementById("angle_up_field") as HTMLInputElement).value =
+  //     workout[selectedOption?.value]?.angle?.up;
+  // };
+
+  // const setDefaultAngleDown = () => {
+  //   setAngleUpInput(workout[selectedOption?.value]?.angle?.down);
+  //   (document.getElementById("angle_down_field") as HTMLInputElement).value =
+  //     workout[selectedOption?.value]?.angle?.down;
+  // };
+
+  // const setDefaultThresholdTime = () => {
+  //   setAngleUpInput(workout[selectedOption?.value]?.time);
+  //   (document.getElementById("angle_down_field") as HTMLInputElement).value =
+  //     workout[selectedOption?.value]?.time;
+  // };
+
   const saveSettings = () => {
     console.log(angleUpInput);
+    console.log(angleDownInput);
+    console.log(thresholdTime);
   };
   const closeModal = () => {
     setIsOpen(false);
@@ -55,6 +92,7 @@ export const Settings = () => {
   const openModal = () => {
     setIsOpen(true);
   };
+
   return (
     <div>
       <div className="flex items-center">
@@ -110,61 +148,15 @@ export const Settings = () => {
                         className="w-full m-auto my-4"
                       />
                     </h3>
-                    <SettingsInput
-                      changeInput={changeAngleUp}
-                      setDefaultInput={setDefaultAngleUp}
-                      inputValue={angleUpInput}
-                    />
-                    <label className="block mb-2 text-sm font-medium text-gray-900">
-                      Angle for Up:
-                    </label>
-                    <div className="relative mb-4 text-gray-700">
-                      <input
-                        className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                        type="number"
-                        name="angleUp"
-                        onChange={changeAngleUp}
-                        defaultValue={angleUpInput}
-                        id="angle_up_field"
-                        onFocus={(e) => (e.target.value = "")}
-                        onBlur={() => {
-                          (
-                            document.getElementById(
-                              "angle_up_field"
-                            ) as HTMLInputElement
-                          ).value = angleUpInput;
-                        }}
-                      />
-                      <button
-                        className="absolute inset-y-0 right-0 flex items-center px-4 font-bold text-white bg-blue-500 rounded-r-lg hover:bg-blue-300"
-                        onClick={setDefaultAngleUp}
-                      >
-                        Set Default
-                      </button>
-                    </div>
-                    <label className="block mb-2 text-sm font-medium text-gray-900">
-                      Angle for Down:
-                    </label>
-                    <div className="relative mb-4 text-gray-700">
-                      <input
-                        className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                        type="number"
-                        name="angleUp"
-                        onChange={changeAngleUp}
-                        defaultValue={angleUpInput}
-                        id="angle_up_field"
-                        onFocus={(e) => (e.target.value = "")}
-                      />
-                      <button
-                        className="absolute inset-y-0 right-0 flex items-center px-4 font-bold text-white bg-blue-500 rounded-r-lg hover:bg-blue-300"
-                        onClick={setDefaultAngleUp}
-                      >
-                        Set Default
-                      </button>
-                    </div>
-                    <label className="block mb-2 text-sm font-medium text-gray-900">
-                      Threshold Time:
-                    </label>
+                    {["angleUp", "angleDown", "thresholdTime"].map(
+                      (settingKey) => (
+                        <SettingsInput
+                          changeSetting={(e) => changeSetting(e, settingKey)}
+                          setDefaultInput={() => setToDefault(settingKey)}
+                          inputValue={getInput(settingKey)}
+                        />
+                      )
+                    )}
                   </div>
 
                   <div className="mt-4">

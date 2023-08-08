@@ -1,6 +1,11 @@
 {
   "armCurl": {
     "label": "Arm Curl",
+    "defaultSettings": {
+      "angleUp": 120,
+      "angleDown": 45,
+      "thresholdTime": 0.75
+    },
     "angle": {
       "down": 120,
       "up": 45
@@ -10,6 +15,11 @@
   },
   "squat": {
     "label": "Squat",
+    "defaultSettings": {
+      "angleUp": 150,
+      "angleDown": 100,
+      "thresholdTime": 0.75
+    },
     "angle": {
       "down": 100,
       "up": 150
@@ -18,6 +28,11 @@
   },
   "benchPress": {
     "label": "Bench Press",
+    "defaultSettings": {
+      "angleUp": 120,
+      "angleDown": 50,
+      "thresholdTime": 0.75
+    },
     "angle": {
       "down": 50,
       "up": 120
