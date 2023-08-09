@@ -53,34 +53,6 @@ export const Settings = () => {
     else if (settingKey === "thresholdTime") return thresholdTime;
   };
 
-  // const changeAngleUp = (e) => {
-  //   setAngleUpInput(Number(e.target.value));
-  // };
-  // const changeAngleDown = (e) => {
-  //   setAngleDownInput(Number(e.target.value));
-  // };
-  // const changethresholdTime = (e) => {
-  //   setThresholdTime(Number(e.target.value));
-  // };
-
-  // const setDefaultAngleUp = () => {
-  //   setAngleUpInput(workout[selectedOption?.value]?.angle?.up);
-  //   (document.getElementById("angle_up_field") as HTMLInputElement).value =
-  //     workout[selectedOption?.value]?.angle?.up;
-  // };
-
-  // const setDefaultAngleDown = () => {
-  //   setAngleUpInput(workout[selectedOption?.value]?.angle?.down);
-  //   (document.getElementById("angle_down_field") as HTMLInputElement).value =
-  //     workout[selectedOption?.value]?.angle?.down;
-  // };
-
-  // const setDefaultThresholdTime = () => {
-  //   setAngleUpInput(workout[selectedOption?.value]?.time);
-  //   (document.getElementById("angle_down_field") as HTMLInputElement).value =
-  //     workout[selectedOption?.value]?.time;
-  // };
-
   const saveSettings = () => {
     console.log(angleUpInput);
     console.log(angleDownInput);
@@ -151,6 +123,8 @@ export const Settings = () => {
                     {["angleUp", "angleDown", "thresholdTime"].map(
                       (settingKey) => (
                         <SettingsInput
+                          key={settingKey}
+                          inputId={settingKey}
                           changeSetting={(e) => changeSetting(e, settingKey)}
                           setDefaultInput={() => setToDefault(settingKey)}
                           inputValue={getInput(settingKey)}
