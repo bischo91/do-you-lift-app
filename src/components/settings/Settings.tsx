@@ -3,6 +3,10 @@ import React, { Fragment, useState } from "react";
 
 import Select from "react-select";
 import { SettingsInput } from "./SettingsInput";
+import { setSettings } from "../../redux/settings";
+import store from "../../redux/store";
+// import { configureStore } from "@reduxjs/toolkit";
+import { useDispatch } from "react-redux";
 import workout from "./workout.json";
 
 export const Settings = () => {
@@ -53,13 +57,26 @@ export const Settings = () => {
     else if (settingKey === "thresholdTime") return thresholdTime;
   };
 
+  const dispatch = useDispatch();
   const saveSettings = () => {
     console.log(angleUpInput);
     console.log(angleDownInput);
     console.log(thresholdTime);
+    // const store = configureStore({
+    //   reducer: settingsSlice.reducer,
+    // });
+    dispatch(
+      setSettings({
+        angleUp: angleUpInput,
+        angleDown: angleDownInput,
+        thresholdTime,
+      })
+    );
   };
   const closeModal = () => {
     setIsOpen(false);
+    console.log(store.getState());
+    // console.log(test);
   };
   const openModal = () => {
     setIsOpen(true);

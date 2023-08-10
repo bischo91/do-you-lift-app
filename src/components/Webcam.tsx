@@ -17,6 +17,7 @@ import {
 import DownloadIcon from "../asset/download.png";
 import RecordIcon from "../asset/record.png";
 import StopIcon from "../asset/stop.png";
+import store from "../redux/store";
 
 export const Webcam = ({ workoutOption }) => {
   const videoRef = useRef(null);
@@ -86,6 +87,7 @@ export const Webcam = ({ workoutOption }) => {
     enableWebcamButton = enableWebcamRef.current;
 
     const enableCam = () => {
+      console.log(store.getState());
       if (!webcamRunning) {
         setIsLoading(true);
         webcamRunning = true;
@@ -106,7 +108,6 @@ export const Webcam = ({ workoutOption }) => {
             const frameRate = stream
               .getVideoTracks()[0]
               .getSettings().frameRate;
-            // if (stream.getVideoTracks()[0].getSettings().facingMode === "user")
             const videoStream = canvasRef.current.captureStream(frameRate);
             const mixed = new MediaStream([
               ...videoStream.getVideoTracks(),

@@ -1,26 +1,30 @@
-// import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
-// const initialState = {
-//   angleUp: null,
-//   angleDown: null,
-//   thresholdTime: null,
-// };
+const initialState = {
+  angleUp: null,
+  angleDown: null,
+  thresholdTime: null,
+};
 
-// const settingsSlice = createSlice({
-//   name: "settings",
-//   initialState,
-//   reducers: {
-//     setSettings: () => {
-//       console.log("test");
-//     },
-//     getSettings: () => {
-//       console.log("getSettings");
-//     },
-//   },
-// });
+const settingsSlice = createSlice({
+  name: "settings",
+  initialState,
+  reducers: {
+    setSettings: (state, action) => {
+      console.log(action);
 
-// export const { setSettings, getSettings } = settingsSlice.actions;
+      state.angleUp = action.payload.angleUp;
+      state.angleDown = action.payload.angleDown;
+      state.thresholdTime = action.payload.thresholdTime;
+    },
+  },
+});
+// const { reducer, actions } = settingsSlice;
+const { reducer } = settingsSlice;
 
+export const { setSettings } = settingsSlice.actions;
+
+export default reducer;
 // const store = configureStore({
 //   reducer: settingsSlice.reducer,
 // });
