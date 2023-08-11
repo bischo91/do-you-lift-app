@@ -6,11 +6,11 @@
       "angleDown": 45,
       "thresholdTime": 0.75
     },
-    "angle": {
-      "down": 120,
-      "up": 45
+    "userDefinedSettings": {
+      "angleUp": null,
+      "angleDown": null,
+      "thresholdTime": null
     },
-    "time": 0.75,
     "isTwoSide": true
   },
   "squat": {
@@ -20,11 +20,12 @@
       "angleDown": 100,
       "thresholdTime": 0.75
     },
-    "angle": {
-      "down": 100,
-      "up": 150
+    "userDefinedSettings": {
+      "angleUp": null,
+      "angleDown": null,
+      "thresholdTime": null
     },
-    "time": 0.75
+    "isTwoSide": false
   },
   "benchPress": {
     "label": "Bench Press",
@@ -33,11 +34,12 @@
       "angleDown": 50,
       "thresholdTime": 0.75
     },
-    "angle": {
-      "down": 50,
-      "up": 120
+    "userDefinedSettings": {
+      "angleUp": null,
+      "angleDown": null,
+      "thresholdTime": null
     },
-    "time": 0.75
+    "isTwoSide": false
   },
   "demo": {
     "label": "Demo"

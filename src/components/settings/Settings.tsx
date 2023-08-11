@@ -18,10 +18,6 @@ export const Settings = () => {
     // { value: 'deadlift', label: 'Deadlift' },
   ];
   const [selectedOption, setSelectedOption] = useState(null);
-
-  // set input states for angle up, down, time
-  // on save settings define workout settings that can pass to parents or redux
-  // on setDefault call workout's default
   const [angleUpInput, setAngleUpInput] = useState(null);
   const [angleDownInput, setAngleDownInput] = useState(null);
   const [thresholdTime, setThresholdTime] = useState(null);
@@ -59,17 +55,13 @@ export const Settings = () => {
 
   const dispatch = useDispatch();
   const saveSettings = () => {
-    console.log(angleUpInput);
-    console.log(angleDownInput);
-    console.log(thresholdTime);
-    // const store = configureStore({
-    //   reducer: settingsSlice.reducer,
-    // });
     dispatch(
       setSettings({
-        angleUp: angleUpInput,
-        angleDown: angleDownInput,
-        thresholdTime,
+        [selectedOption.value]: {
+          angleUp: angleUpInput,
+          angleDown: angleDownInput,
+          thresholdTime,
+        },
       })
     );
   };

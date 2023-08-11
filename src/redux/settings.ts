@@ -1,9 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-
+import workout from "../components/settings/workout.json";
 const initialState = {
-  angleUp: null,
-  angleDown: null,
-  thresholdTime: null,
+  ...workout,
 };
 
 const settingsSlice = createSlice({
@@ -12,10 +10,8 @@ const settingsSlice = createSlice({
   reducers: {
     setSettings: (state, action) => {
       console.log(action);
-
-      state.angleUp = action.payload.angleUp;
-      state.angleDown = action.payload.angleDown;
-      state.thresholdTime = action.payload.thresholdTime;
+      const workout = Object.keys(action.payload)[0];
+      state = { ...state, [workout]: action.payload[workout] };
     },
   },
 });
