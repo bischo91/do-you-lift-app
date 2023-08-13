@@ -24,10 +24,33 @@ export const Settings = () => {
 
   const changeOption = (selected) => {
     if (selected !== selectedOption) setSelectedOption(selected);
-    setAngleUpInput(workout[selected?.value]?.defaultSettings?.angleUp);
-    setAngleDownInput(workout[selected?.value]?.defaultSettings?.angleDown);
-    setThresholdTime(workout[selected?.value]?.defaultSettings?.thresholdTime);
+    const defaultSettings =
+      store.getState().settings[selected.value].defaultSettings;
+    const userDefinedSettings =
+      store.getState().settings[selected.value].userDefinedSettings;
+    setAngleUpInput(userDefinedSettings?.angleUp ?? defaultSettings.angleUp);
+    setAngleDownInput(
+      userDefinedSettings?.angleDown ?? defaultSettings.angleDown
+    );
+    setThresholdTime(
+      userDefinedSettings?.thresholdTime ?? defaultSettings.thresholdTime
+    );
+    // setAngleUpInput(
+    //   workout[selected?.value]?.userDefinedSettings?.angleUp ??
+    //     workout[selected?.value]?.defaultSettings?.angleUp
+    // );
+    // setAngleDownInput(
+    //   workout[selected?.value]?.userDefinedSettings?.angleDown ??
+    //     workout[selected?.value]?.defaultSettings?.angleDown
+    // );
+    // setThresholdTime(
+    //   workout[selected?.value]?.userDefinedSettings?.thresholdTime ??
+    //     workout[selected?.value]?.defaultSettings?.thresholdTime
+    // );
     setSelectedOption(selected);
+    console.log(workout[selected?.value]);
+    console.log(thresholdTime);
+    console.log(store.getState());
   };
 
   const changeSetting = (e, settingKey) => {
@@ -39,12 +62,16 @@ export const Settings = () => {
   };
 
   const setToDefault = (settingKey) => {
-    const defaultSettings = workout[selectedOption?.value]?.defaultSettings;
-    if (settingKey === "angleUp") setAngleUpInput(defaultSettings?.angleUp);
-    else if (settingKey === "angleDown")
-      setAngleDownInput(defaultSettings?.angleDown);
+    const selected = workout[selectedOption?.value];
+    if (settingKey === "angleUp") {
+      setAngleUpInput(selected.defaultSettings.angleUp);
+      document.getElementById("angleUp").innerHTML =
+        selected.defaultSettings.angleUp.toString();
+    } else if (settingKey === "angleDown")
+      setAngleDownInput(selected.defaultSettings.angleDown);
     else if (settingKey === "thresholdTime")
-      setThresholdTime(defaultSettings?.thresholdTime);
+      setThresholdTime(selected.defaultSettings.thresholdTime);
+    console.log(angleUpInput);
   };
 
   const getInput = (settingKey) => {

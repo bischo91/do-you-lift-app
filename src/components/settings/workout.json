@@ -2,8 +2,8 @@
   "armCurl": {
     "label": "Arm Curl",
     "defaultSettings": {
-      "angleUp": 120,
-      "angleDown": 45,
+      "angleUp": 45,
+      "angleDown": 120,
       "thresholdTime": 0.75
     },
     "userDefinedSettings": {

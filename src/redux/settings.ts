@@ -11,7 +11,15 @@ const settingsSlice = createSlice({
     setSettings: (state, action) => {
       console.log(action);
       const workout = Object.keys(action.payload)[0];
-      state = { ...state, [workout]: action.payload[workout] };
+      state[workout].userDefinedSettings = action.payload[workout];
+      //   state = {
+      //     ...state,
+      //     [workout]: {
+      //       ...[workout],
+      //       userDefinedSettings: action.payload[workout],
+      //     },
+      //   };
+      console.log(state);
     },
   },
 });

@@ -87,7 +87,6 @@ export const Webcam = ({ workoutOption }) => {
     enableWebcamButton = enableWebcamRef.current;
 
     const enableCam = () => {
-      console.log(store.getState());
       if (!webcamRunning) {
         setIsLoading(true);
         webcamRunning = true;
@@ -162,6 +161,7 @@ export const Webcam = ({ workoutOption }) => {
     // Add timer for each rep
     let lastTimeLeftStageChange;
     let lastTimeRightStageChange;
+    let threshold;
 
     //   requestAnimationFrame(drawOnCanvas); for drawing canvas?
     const predictWebcam = async () => {
@@ -174,6 +174,22 @@ export const Webcam = ({ workoutOption }) => {
         currentWorkout = workoutRef.current.innerHTML;
         leftCount = 0;
         rightCount = 0;
+        threshold = {
+          down:
+            store.getState().settings[currentWorkout].userDefinedSettings
+              ?.angleDown ??
+            store.getState().settings[currentWorkout].defaultSettings
+              ?.angleDown,
+          up:
+            store.getState().settings[currentWorkout].userDefinedSettings
+              ?.angleUp ??
+            store.getState().settings[currentWorkout].defaultSettings?.angleUp,
+          time:
+            store.getState().settings[currentWorkout].userDefinedSettings
+              ?.thresholdTime ??
+            store.getState().settings[currentWorkout].defaultSettings
+              ?.thresholdTime,
+        };
       }
       // Now let's start detecting the stream.
       if (initialize) {
@@ -188,10 +204,10 @@ export const Webcam = ({ workoutOption }) => {
       }
 
       if (lastVideoTime !== videoRef.current.currentTime) {
+        console.log(threshold);
         lastVideoTime = videoRef.current.currentTime;
         if (!lastTimeLeftStageChange) lastTimeLeftStageChange = lastVideoTime;
         if (!lastTimeRightStageChange) lastTimeRightStageChange = lastVideoTime;
-
         poseLandmarker.detectForVideo(
           videoRef.current,
           performance.now(),
@@ -233,7 +249,25 @@ export const Webcam = ({ workoutOption }) => {
                 canvasElement.height
               );
               if (currentWorkout === "armCurl") {
-                const threshold = { down: 120, up: 45, time: 0.75 };
+                // const threshold = { down: 120, up: 45, time: 0.75 };
+
+                // threshold.down =
+                //   store.getState().settings[currentWorkout].userDefinedSettings
+                //     ?.angleDown ??
+                //   store.getState().settings[currentWorkout].defaultSettings
+                //     ?.angleDown;
+                // threshold.up =
+                //   store.getState().settings[currentWorkout].userDefinedSettings
+                //     ?.angleUp ??
+                //   store.getState().settings[currentWorkout].defaultSettings
+                //     ?.angleUp;
+                // threshold.time =
+                //   store.getState().settings[currentWorkout].userDefinedSettings
+                //     ?.thresholdTime ??
+                //   store.getState().settings[currentWorkout].defaultSettings
+                //     ?.thresholdTime;
+                // console.log(threshold);
+
                 const result = twoSideWorkout(
                   threshold,
                   leftArmAngle,
@@ -278,7 +312,7 @@ export const Webcam = ({ workoutOption }) => {
                   rightCount
                 );
               } else if (currentWorkout === "squat") {
-                const threshold = { down: 100, up: 150, time: 0.75 };
+                // const threshold = { down: 100, up: 150, time: 0.75 };
                 const result = oneSideWorkout(
                   threshold,
                   leftLegAngle,
@@ -304,7 +338,7 @@ export const Webcam = ({ workoutOption }) => {
                   leftCount
                 );
               } else if (currentWorkout === "benchPress") {
-                const threshold = { down: 50, up: 120, time: 0.75 };
+                // const threshold = { down: 50, up: 120, time: 0.75 };
                 const result = oneSideWorkout(
                   threshold,
                   leftArmAngle,
