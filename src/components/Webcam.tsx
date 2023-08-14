@@ -104,6 +104,7 @@ export const Webcam = ({ workoutOption }) => {
             cameraAspectRatio = stream
               .getVideoTracks()[0]
               .getSettings().aspectRatio;
+            console.log(stream.getVideoTracks());
             const frameRate = stream
               .getVideoTracks()[0]
               .getSettings().frameRate;
@@ -174,22 +175,6 @@ export const Webcam = ({ workoutOption }) => {
         currentWorkout = workoutRef.current.innerHTML;
         leftCount = 0;
         rightCount = 0;
-        threshold = {
-          down:
-            store.getState().settings[currentWorkout].userDefinedSettings
-              ?.angleDown ??
-            store.getState().settings[currentWorkout].defaultSettings
-              ?.angleDown,
-          up:
-            store.getState().settings[currentWorkout].userDefinedSettings
-              ?.angleUp ??
-            store.getState().settings[currentWorkout].defaultSettings?.angleUp,
-          time:
-            store.getState().settings[currentWorkout].userDefinedSettings
-              ?.thresholdTime ??
-            store.getState().settings[currentWorkout].defaultSettings
-              ?.thresholdTime,
-        };
       }
       // Now let's start detecting the stream.
       if (initialize) {
@@ -204,7 +189,19 @@ export const Webcam = ({ workoutOption }) => {
       }
 
       if (lastVideoTime !== videoRef.current.currentTime) {
-        console.log(threshold);
+        const currentWorkoutSettings =
+          store.getState().settings[currentWorkout];
+        threshold = {
+          down:
+            currentWorkoutSettings.userDefinedSettings?.angleDown ??
+            currentWorkoutSettings.defaultSettings?.angleDown,
+          up:
+            currentWorkoutSettings.userDefinedSettings?.angleUp ??
+            currentWorkoutSettings.defaultSettings?.angleUp,
+          time:
+            currentWorkoutSettings.userDefinedSettings?.thresholdTime ??
+            currentWorkoutSettings.defaultSettings?.thresholdTime,
+        };
         lastVideoTime = videoRef.current.currentTime;
         if (!lastTimeLeftStageChange) lastTimeLeftStageChange = lastVideoTime;
         if (!lastTimeRightStageChange) lastTimeRightStageChange = lastVideoTime;
@@ -212,8 +209,6 @@ export const Webcam = ({ workoutOption }) => {
           videoRef.current,
           performance.now(),
           (result) => {
-            // canvasCtx.translate(canvasElement.width, 0);
-            // canvasCtx.scale(-1, 1);
             canvasCtx.drawImage(
               videoRef.current,
               0,
@@ -248,32 +243,26 @@ export const Webcam = ({ workoutOption }) => {
                 canvasElement.width,
                 canvasElement.height
               );
-              if (currentWorkout === "armCurl") {
-                // const threshold = { down: 120, up: 45, time: 0.75 };
 
-                // threshold.down =
-                //   store.getState().settings[currentWorkout].userDefinedSettings
-                //     ?.angleDown ??
-                //   store.getState().settings[currentWorkout].defaultSettings
-                //     ?.angleDown;
-                // threshold.up =
-                //   store.getState().settings[currentWorkout].userDefinedSettings
-                //     ?.angleUp ??
-                //   store.getState().settings[currentWorkout].defaultSettings
-                //     ?.angleUp;
-                // threshold.time =
-                //   store.getState().settings[currentWorkout].userDefinedSettings
-                //     ?.thresholdTime ??
-                //   store.getState().settings[currentWorkout].defaultSettings
-                //     ?.thresholdTime;
-                // console.log(threshold);
-
+              const leftAngle =
+                currentWorkoutSettings?.bodyPoints === "arms"
+                  ? leftArmAngle
+                  : currentWorkoutSettings?.bodyPoints === "legs"
+                  ? leftLegAngle
+                  : null;
+              const rightAngle =
+                currentWorkoutSettings?.bodyPoints === "arms"
+                  ? rightArmAngle
+                  : currentWorkoutSettings?.bodyPoints === "legs"
+                  ? rightLegAngle
+                  : null;
+              if (currentWorkoutSettings?.isTwoSide) {
                 const result = twoSideWorkout(
                   threshold,
-                  leftArmAngle,
+                  leftAngle,
                   leftStage,
                   leftCount,
-                  rightArmAngle,
+                  rightAngle,
                   rightStage,
                   rightCount
                 );
@@ -300,25 +289,24 @@ export const Webcam = ({ workoutOption }) => {
                 writeOnCanvas(
                   canvasElement,
                   "left",
-                  leftArmAngle,
+                  leftAngle,
                   leftStage,
                   leftCount
                 );
                 writeOnCanvas(
                   canvasElement,
                   "right",
-                  rightArmAngle,
+                  rightAngle,
                   rightStage,
                   rightCount
                 );
-              } else if (currentWorkout === "squat") {
-                // const threshold = { down: 100, up: 150, time: 0.75 };
+              } else if (currentWorkoutSettings?.isTwoSide === false) {
                 const result = oneSideWorkout(
                   threshold,
-                  leftLegAngle,
+                  leftAngle,
                   leftStage,
                   leftCount,
-                  rightLegAngle
+                  rightAngle
                 );
                 if (
                   lastVideoTime - lastTimeLeftStageChange > threshold.time &&
@@ -333,38 +321,11 @@ export const Webcam = ({ workoutOption }) => {
                 writeOnCanvas(
                   canvasElement,
                   "left",
-                  leftLegAngle,
+                  leftAngle,
                   leftStage,
                   leftCount
                 );
-              } else if (currentWorkout === "benchPress") {
-                // const threshold = { down: 50, up: 120, time: 0.75 };
-                const result = oneSideWorkout(
-                  threshold,
-                  leftArmAngle,
-                  leftStage,
-                  leftCount,
-                  rightArmAngle
-                );
-                if (
-                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
-                  leftCount !== result.leftCount
-                ) {
-                  leftCount = result.leftCount;
-                }
-                if (leftStage !== result.leftStage) {
-                  lastTimeLeftStageChange = lastVideoTime;
-                }
-                leftStage = result.leftStage;
-
-                writeOnCanvas(
-                  canvasElement,
-                  "left",
-                  leftArmAngle,
-                  leftStage,
-                  leftCount
-                );
-              } else if (currentWorkout === "demo") {
+              } else {
                 showDemo(
                   canvasElement,
                   body,
@@ -397,7 +358,7 @@ export const Webcam = ({ workoutOption }) => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workoutOption]);
+  }, [workoutOption, store.getState().settings]);
 
   return (
     <div>

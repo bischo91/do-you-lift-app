@@ -9,17 +9,18 @@ const settingsSlice = createSlice({
   initialState,
   reducers: {
     setSettings: (state, action) => {
-      console.log(action);
       const workout = Object.keys(action.payload)[0];
-      state[workout].userDefinedSettings = action.payload[workout];
-      //   state = {
-      //     ...state,
-      //     [workout]: {
-      //       ...[workout],
-      //       userDefinedSettings: action.payload[workout],
-      //     },
-      //   };
       console.log(state);
+      // if (state[workout]) {
+      //   state[workout].userDefinedSettings =
+      //     action.payload[workout].userDefinedSettings;
+      // } else
+      state[workout] = {
+        label: workout,
+        userDefinedSettings: action.payload[workout].userDefinedSettings,
+        isTwoSide: action.payload[workout].isTwoSide,
+        bodyPoints: action.payload[workout].bodyPoints.value,
+      };
     },
   },
 });

@@ -11,7 +11,8 @@
       "angleDown": null,
       "thresholdTime": null
     },
-    "isTwoSide": true
+    "isTwoSide": true,
+    "bodyPoints": "arms"
   },
   "squat": {
     "label": "Squat",
@@ -25,7 +26,8 @@
       "angleDown": null,
       "thresholdTime": null
     },
-    "isTwoSide": false
+    "isTwoSide": false,
+    "bodyPoints": "legs"
   },
   "benchPress": {
     "label": "Bench Press",
@@ -39,7 +41,8 @@
       "angleDown": null,
       "thresholdTime": null
     },
-    "isTwoSide": false
+    "isTwoSide": false,
+    "bodyPoints": "arms"
   },
   "demo": {
     "label": "Demo"

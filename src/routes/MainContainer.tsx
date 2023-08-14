@@ -3,21 +3,14 @@ import React, { useState } from "react";
 import Select from "react-select";
 import { Settings } from "../components/settings/Settings";
 import { Webcam } from "../components/Webcam";
+import store from "../redux/store";
 
 export const MainContainer = () => {
-  const options = [
-    { value: "armCurl", label: "Arm Curl" },
-    { value: "squat", label: "Squat" },
-    { value: "benchPress", label: "Bench Press" },
-    // { value: 'deadlift', label: 'Deadlift' },
-    { value: "demo", label: "Demo" },
-  ];
+  const options = Object.keys(store.getState().settings).map((value) => ({
+    value,
+    label: store.getState().settings[value].label,
+  }));
   const [selectedOption, setSelectedOption] = useState(null);
-
-  const changeOption = (selected) => {
-    if (!selected) setSelectedOption(options[3]); //demo for now
-    else if (selected !== selectedOption) setSelectedOption(selected);
-  };
 
   return (
     <div className="flex flex-col space-y-4">
@@ -25,7 +18,20 @@ export const MainContainer = () => {
       <div className="flex w-full m-auto">
         <Select
           defaultValue={"Select"}
-          onChange={changeOption}
+          onChange={(selected) => {
+            if (selected !== selectedOption) setSelectedOption(selected);
+          }}
+          onMenuOpen={() =>
+            Object.keys(store.getState().settings).forEach((value) => {
+              if (
+                options.filter((option) => option.value === value).length === 0
+              )
+                options.push({
+                  value,
+                  label: store.getState().settings[value].label,
+                });
+            })
+          }
           value={selectedOption}
           options={options}
           className="w-1/2 m-auto"

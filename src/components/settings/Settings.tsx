@@ -11,46 +11,53 @@ import workout from "./workout.json";
 
 export const Settings = () => {
   let [isOpen, setIsOpen] = useState(false);
-  const options = [
-    { value: "armCurl", label: "Arm Curl" },
-    { value: "squat", label: "Squat" },
-    { value: "benchPress", label: "Bench Press" },
-    // { value: 'deadlift', label: 'Deadlift' },
-  ];
+
+  const options = Object.keys(store.getState().settings)
+    .map((value) => ({
+      value,
+      label: store.getState().settings[value].label,
+    }))
+    .filter(({ value }) => value !== "demo");
+
   const [selectedOption, setSelectedOption] = useState(null);
   const [angleUpInput, setAngleUpInput] = useState(null);
   const [angleDownInput, setAngleDownInput] = useState(null);
   const [thresholdTime, setThresholdTime] = useState(null);
-
+  const [newWorkout, setNewWorkout] = useState("");
+  const [isTwoSide, setIsTwoSide] = useState(false);
+  const [bodyPoints, setBodyPoints] = useState(null);
   const changeOption = (selected) => {
     if (selected !== selectedOption) setSelectedOption(selected);
-    const defaultSettings =
-      store.getState().settings[selected.value].defaultSettings;
-    const userDefinedSettings =
-      store.getState().settings[selected.value].userDefinedSettings;
-    setAngleUpInput(userDefinedSettings?.angleUp ?? defaultSettings.angleUp);
-    setAngleDownInput(
-      userDefinedSettings?.angleDown ?? defaultSettings.angleDown
-    );
-    setThresholdTime(
-      userDefinedSettings?.thresholdTime ?? defaultSettings.thresholdTime
-    );
-    // setAngleUpInput(
-    //   workout[selected?.value]?.userDefinedSettings?.angleUp ??
-    //     workout[selected?.value]?.defaultSettings?.angleUp
-    // );
-    // setAngleDownInput(
-    //   workout[selected?.value]?.userDefinedSettings?.angleDown ??
-    //     workout[selected?.value]?.defaultSettings?.angleDown
-    // );
-    // setThresholdTime(
-    //   workout[selected?.value]?.userDefinedSettings?.thresholdTime ??
-    //     workout[selected?.value]?.defaultSettings?.thresholdTime
-    // );
-    setSelectedOption(selected);
-    console.log(workout[selected?.value]);
-    console.log(thresholdTime);
+    if (selected.value !== "newWorkout") {
+      const defaultSettings =
+        store.getState().settings[selected.value].defaultSettings;
+      const userDefinedSettings =
+        store.getState().settings[selected.value].userDefinedSettings;
+      setAngleUpInput(userDefinedSettings?.angleUp ?? defaultSettings.angleUp);
+      setAngleDownInput(
+        userDefinedSettings?.angleDown ?? defaultSettings.angleDown
+      );
+      setThresholdTime(
+        userDefinedSettings?.thresholdTime ?? defaultSettings.thresholdTime
+      );
+      setIsTwoSide(store.getState().settings[selected.value].isTwoSide);
+      setBodyPoints({
+        value: store.getState().settings[selected.value].bodyPoints,
+        label: store
+          .getState()
+          .settings[selected.value].bodyPoints.replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase()),
+      });
+    } else {
+      setAngleUpInput(null);
+      setAngleDownInput(null);
+      setThresholdTime(null);
+      setIsTwoSide(false);
+      setBodyPoints(null);
+      setNewWorkout("");
+    }
     console.log(store.getState());
+    // console.log(!hasDefaultSetting);
   };
 
   const changeSetting = (e, settingKey) => {
@@ -82,20 +89,27 @@ export const Settings = () => {
 
   const dispatch = useDispatch();
   const saveSettings = () => {
+    const workoutValue =
+      selectedOption.value === "newWorkout" ? newWorkout : selectedOption.value;
+
     dispatch(
       setSettings({
-        [selectedOption.value]: {
-          angleUp: angleUpInput,
-          angleDown: angleDownInput,
-          thresholdTime,
+        [workoutValue]: {
+          userDefinedSettings: {
+            angleUp: angleUpInput,
+            angleDown: angleDownInput,
+            thresholdTime,
+          },
+          isTwoSide,
+          bodyPoints,
         },
       })
     );
+    setIsOpen(false);
+    console.log(store.getState());
   };
   const closeModal = () => {
     setIsOpen(false);
-    console.log(store.getState());
-    // console.log(test);
   };
   const openModal = () => {
     setIsOpen(true);
@@ -148,14 +162,63 @@ export const Settings = () => {
                   <div className="mt-2">
                     <h3 className="text-md">
                       <Select
-                        defaultValue={"Select"}
                         onChange={changeOption}
                         value={selectedOption}
-                        options={options}
+                        options={[
+                          ...options,
+                          {
+                            value: "newWorkout",
+                            label: "(Create New Workout)",
+                          },
+                        ]}
+                        // options={options}
+                        onMenuOpen={() =>
+                          Object.keys(store.getState().settings).forEach(
+                            (value) => {
+                              console.log(store.getState().settings);
+                              console.log(options);
+                              console.log(value);
+                              if (
+                                options.filter(
+                                  (option) => option.value === value
+                                ).length === 0 &&
+                                value !== "demo"
+                              )
+                                options.push({
+                                  value,
+                                  label: store.getState().settings[value].label,
+                                });
+                            }
+                          )
+                        }
                         placeholder={"Select Workout"}
                         className="w-full m-auto my-4"
                       />
                     </h3>
+                    {selectedOption?.value === "newWorkout" && (
+                      <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-900">
+                          Workout Name:
+                        </label>
+                        <div className="relative mb-4 text-gray-700">
+                          <input
+                            className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                            type="text"
+                            onChange={(e) => setNewWorkout(e.target.value)}
+                            value={newWorkout}
+                            id="newWorkout"
+                            onFocus={(e) => (e.target.value = "")}
+                            onBlur={() => {
+                              (
+                                document.getElementById(
+                                  "newWorkout"
+                                ) as HTMLInputElement
+                              ).value = newWorkout;
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                     {["angleUp", "angleDown", "thresholdTime"].map(
                       (settingKey) => (
                         <SettingsInput
@@ -164,19 +227,61 @@ export const Settings = () => {
                           changeSetting={(e) => changeSetting(e, settingKey)}
                           setDefaultInput={() => setToDefault(settingKey)}
                           inputValue={getInput(settingKey)}
+                          hasDefaultSetting={
+                            store.getState().settings[selectedOption?.value]
+                              ?.defaultSettings
+                          }
                         />
                       )
                     )}
+                    <label className="block mb-2 text-sm font-medium text-gray-900">
+                      Count left and right separately?
+                      <input
+                        type="checkbox"
+                        disabled={
+                          store.getState().settings[selectedOption?.value]
+                            ?.defaultSettings
+                        }
+                        checked={isTwoSide}
+                        onChange={(e) => {
+                          console.log(e.target.checked);
+                          setIsTwoSide(e.target.checked);
+                        }}
+                        className="ml-4"
+                      />
+                    </label>
+                    <div className="inline-flex my-4">
+                      <label className="block mb-2 mr-4 text-sm font-medium text-gray-900">
+                        Which body part?
+                      </label>
+                      <Select
+                        className="h-4 mr-4"
+                        options={[
+                          { value: "arms", label: "Arms" },
+                          { value: "legs", label: "Legs" },
+                        ]}
+                        isDisabled={
+                          store.getState().settings[selectedOption?.value]
+                            ?.defaultSettings
+                        }
+                        value={bodyPoints}
+                        onChange={(e) => {
+                          setBodyPoints(e);
+                        }}
+                      />
+                    </div>
                   </div>
 
                   <div className="mt-4">
                     <button
                       type="button"
-                      className="inline-flex justify-center px-4 py-2 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center px-4 py-2 mr-4 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       onClick={saveSettings}
                       disabled={!angleUpInput}
                     >
-                      Save Settings
+                      {selectedOption?.value === "newWorkout"
+                        ? "Create and Save Setting"
+                        : "Save Setting"}
                     </button>
                     <button
                       type="button"
