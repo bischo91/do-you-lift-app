@@ -299,6 +299,12 @@ export const Webcam = ({ workoutOption }) => {
                     rightCount
                   );
                 } else if (currentWorkoutSettings?.isTwoSide === false) {
+                  const leftAngle =
+                    currentWorkoutSettings?.bodyPoints === "arms"
+                      ? leftArmAngle
+                      : currentWorkoutSettings?.bodyPoints === "legs"
+                      ? leftLegAngle
+                      : null;
                   const result = oneSideWorkout(
                     threshold,
                     leftAngle,
