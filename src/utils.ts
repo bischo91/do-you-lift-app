@@ -154,17 +154,17 @@ export const twoSideWorkout = (
   rightStage: "up" | "down",
   rightCount: number
 ) => {
-  if (leftAngle > threshold.down) {
+  if (leftAngle >= threshold.down) {
     leftStage = "down";
   }
-  if (leftAngle < threshold.up && leftStage === "down") {
+  if (leftAngle <= threshold.up && leftStage === "down") {
     leftStage = "up";
     leftCount++;
   }
-  if (rightAngle > threshold.down) {
+  if (rightAngle >= threshold.down) {
     rightStage = "down";
   }
-  if (rightAngle < threshold.up && rightStage === "down") {
+  if (rightAngle <= threshold.up && rightStage === "down") {
     rightStage = "up";
     rightCount++;
   }
@@ -180,14 +180,14 @@ export const oneSideWorkout = (
   rightAngle: number
 ) => {
   if (
-    leftAngle > threshold.up &&
-    rightAngle > threshold.up &&
+    leftAngle >= threshold.up &&
+    rightAngle >= threshold.up &&
     leftStage === "down"
   ) {
     leftStage = "up";
     leftCount++;
   }
-  if (leftAngle < threshold.down && rightAngle < threshold.down) {
+  if (leftAngle <= threshold.down && rightAngle <= threshold.down) {
     leftStage = "down";
   }
   return { leftStage, leftCount };

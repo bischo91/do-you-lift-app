@@ -17,6 +17,7 @@ import {
 import DownloadIcon from "../asset/download.png";
 import RecordIcon from "../asset/record.png";
 import StopIcon from "../asset/stop.png";
+import store from "../redux/store";
 
 export const Webcam = ({ workoutOption }) => {
   const videoRef = useRef(null);
@@ -51,179 +52,155 @@ export const Webcam = ({ workoutOption }) => {
   };
 
   useEffect(() => {
-    if (!navigator.mediaDevices?.getUserMedia)
-      console.warn("getUserMedia() is not supported by your browser");
+    createPoseLandmarker().then(() => {
+      if (!workoutOption) return;
+      if (!navigator.mediaDevices?.getUserMedia)
+        console.warn("getUserMedia() is not supported by your browser");
 
-    let cameraAspectRatio;
-    const handleResize = () => {
-      const videoHeight = videoElement.offsetHeight;
-      const videoWidth = videoElement.offsetWidth;
-      const videoActualWidth = videoHeight * cameraAspectRatio;
-      const margin = Math.abs(videoActualWidth - videoWidth) / 2;
-      canvasElement.style.height = videoElement.offsetHeight.toString() + "px";
-      canvasElement.style.width =
-        Math.round(videoElement.offsetHeight * cameraAspectRatio).toString() +
-        "px";
-      canvasElement.style.left = Math.round(margin).toString() + "px";
-    };
-    var mediaRecorder;
+      let cameraAspectRatio;
+      let mediaRecorder;
 
-    let leftCount = 0;
-    let rightCount = 0;
-    let leftStage: "down" | "up" = "down";
-    let rightStage: "down" | "up" = "down";
-    let chunks = [];
+      let leftCount = 0;
+      let rightCount = 0;
+      let leftStage: "down" | "up" = "down";
+      let rightStage: "down" | "up" = "down";
+      let chunks = [];
 
-    let initialize = true;
-    let webcamRunning = false;
-    let enableWebcamButton;
-    let videoElement;
-    let canvasElement;
-    let aElement;
-    videoElement = videoRef.current;
-    canvasElement = canvasRef.current;
-    aElement = downloadRef.current;
-    enableWebcamButton = enableWebcamRef.current;
+      let initialize = true;
+      let webcamRunning = false;
+      let enableWebcamButton;
+      let videoElement;
+      let canvasElement;
+      let aElement;
+      videoElement = videoRef.current;
+      canvasElement = canvasRef.current;
+      aElement = downloadRef.current;
+      enableWebcamButton = enableWebcamRef.current;
 
-    const enableCam = () => {
-      if (!webcamRunning) {
-        setIsLoading(true);
-        webcamRunning = true;
-        enableWebcamRef.current.hidden = true;
-        if (!poseLandmarker) {
-          console.log("Wait! poseLandmaker not loaded yet.");
-          return;
+      let lastVideoTime = -1;
+      let currentWorkout;
+      let leftArmAngle = 0;
+      let rightArmAngle = 0;
+      let leftLegAngle = 0;
+      let rightLegAngle = 0;
+      let lastTimeLeftStageChange;
+      let lastTimeRightStageChange;
+      let threshold;
+
+      const canvasCtx = canvasElement.getContext("2d");
+      const drawingUtils = new DrawingUtils(canvasCtx);
+
+      const handleResize = () => {
+        const videoHeight = videoElement.offsetHeight;
+        const videoWidth = videoElement.offsetWidth;
+        const videoActualWidth = videoHeight * cameraAspectRatio;
+        const margin = Math.abs(videoActualWidth - videoWidth) / 2;
+        canvasElement.style.height =
+          videoElement.offsetHeight.toString() + "px";
+        canvasElement.style.width =
+          Math.round(videoElement.offsetHeight * cameraAspectRatio).toString() +
+          "px";
+        canvasElement.style.left = Math.round(margin).toString() + "px";
+      };
+
+      const enableCam = () => {
+        if (!webcamRunning && poseLandmarker) {
+          setIsLoading(true);
+          webcamRunning = true;
+          navigator.mediaDevices
+            .getUserMedia({
+              video: { facingMode: "user" },
+              audio: false,
+            })
+            .then((stream) => {
+              cameraAspectRatio = stream
+                .getVideoTracks()[0]
+                .getSettings().aspectRatio;
+              const frameRate = stream
+                .getVideoTracks()[0]
+                .getSettings().frameRate;
+              const videoStream = canvasRef.current.captureStream(frameRate);
+              const mixed = new MediaStream([
+                ...videoStream.getVideoTracks(),
+                ...stream.getVideoTracks(),
+              ]);
+              mediaRecorder = new MediaRecorder(mixed);
+              mediaRecorder.ondataavailable = (e) => {
+                chunks.push(e.data);
+              };
+              mediaRecorder.onstop = (e) => {
+                const blob = new Blob(chunks, { type: "video/mp4" });
+                const videoURL = URL.createObjectURL(blob);
+                aElement = downloadRef.current;
+                aElement.href = videoURL;
+                chunks = [];
+                setIsDownloadReady(true);
+              };
+              recordRef.current.addEventListener("click", () => {
+                setIsRecording(true);
+                setIsDownloadReady(false);
+                return mediaRecorder.start();
+              });
+
+              stopRef.current.addEventListener("click", () => {
+                setIsRecording(false);
+                return mediaRecorder.stop();
+              });
+
+              videoElement.srcObject = stream;
+              videoElement.addEventListener("loadeddata", predictWebcam);
+            });
         }
-        navigator.mediaDevices
-          .getUserMedia({
-            video: { facingMode: "user" },
-            audio: false,
-          })
-          .then((stream) => {
-            cameraAspectRatio = stream
-              .getVideoTracks()[0]
-              .getSettings().aspectRatio;
-            const frameRate = stream
-              .getVideoTracks()[0]
-              .getSettings().frameRate;
-            // if (stream.getVideoTracks()[0].getSettings().facingMode === "user")
-            const videoStream = canvasRef.current.captureStream(frameRate);
-            const mixed = new MediaStream([
-              ...videoStream.getVideoTracks(),
-              ...stream.getVideoTracks(),
-            ]);
-            mediaRecorder = new MediaRecorder(mixed);
-            mediaRecorder.ondataavailable = (e) => {
-              chunks.push(e.data);
-            };
-            mediaRecorder.onstop = (e) => {
-              const blob = new Blob(chunks, { type: "video/mp4" });
-              const videoURL = URL.createObjectURL(blob);
-              aElement = downloadRef.current;
-              aElement.href = videoURL;
-              chunks = [];
-              setIsDownloadReady(true);
-            };
-            recordRef.current.addEventListener("click", () => {
-              setIsRecording(true);
-              setIsDownloadReady(false);
-              return mediaRecorder.start();
-            });
+      };
+      if (enableWebcamButton)
+        enableWebcamButton.addEventListener("click", enableCam);
+      window.addEventListener("resize", handleResize);
 
-            stopRef.current.addEventListener("click", () => {
-              setIsRecording(false);
-              return mediaRecorder.stop();
-            });
-
-            videoElement.srcObject = stream;
-            videoElement.addEventListener("loadeddata", predictWebcam);
+      const predictWebcam = async () => {
+        if (restartRef.current)
+          restartRef.current.addEventListener("click", () => {
+            leftCount = 0;
+            rightCount = 0;
           });
-      }
-    };
-    enableWebcamButton.addEventListener("click", enableCam);
-    window.addEventListener("resize", handleResize);
-
-    // Enable the live webcam view and start detection.
-
-    createPoseLandmarker();
-    const canvasCtx = canvasElement.getContext("2d");
-    const drawingUtils = new DrawingUtils(canvasCtx);
-
-    // If webcam supported, add event listener to button for when user
-    // wants to activate it.
-
-    let lastVideoTime = -1;
-    let currentWorkout;
-    let leftArmAngle = 0;
-    let rightArmAngle = 0;
-    let leftLegAngle = 0;
-    let rightLegAngle = 0;
-    // Add timer for each rep
-    let lastTimeLeftStageChange;
-    let lastTimeRightStageChange;
-
-    //   requestAnimationFrame(drawOnCanvas); for drawing canvas?
-    const predictWebcam = async () => {
-      if (restartRef.current)
-        restartRef.current.addEventListener("click", () => {
+        if (currentWorkout !== workoutRef.current.innerHTML) {
+          currentWorkout = workoutRef.current.innerHTML;
           leftCount = 0;
           rightCount = 0;
-        });
-      if (currentWorkout !== workoutRef.current.innerHTML) {
-        currentWorkout = workoutRef.current.innerHTML;
-        leftCount = 0;
-        rightCount = 0;
-      }
-      // Now let's start detecting the stream.
-      if (initialize) {
-        await poseLandmarker.setOptions({
-          runningMode: "VIDEO",
-          minPoseDetectionConfidence: 0.8,
-          minPosePresenceConfidence: 0.5,
-        });
-        handleResize();
-        initialize = false;
-        setIsLoading(false);
-      }
+        }
+        // Now let's start detecting the stream.
+        if (initialize) {
+          await poseLandmarker.setOptions({
+            runningMode: "VIDEO",
+            minPoseDetectionConfidence: 0.8,
+            minPosePresenceConfidence: 0.5,
+          });
+          handleResize();
+          initialize = false;
+          setIsLoading(false);
+        }
 
-      if (lastVideoTime !== videoRef.current.currentTime) {
-        lastVideoTime = videoRef.current.currentTime;
-        if (!lastTimeLeftStageChange) lastTimeLeftStageChange = lastVideoTime;
-        if (!lastTimeRightStageChange) lastTimeRightStageChange = lastVideoTime;
-
-        poseLandmarker.detectForVideo(
-          videoRef.current,
-          performance.now(),
-          (result) => {
-            // canvasCtx.translate(canvasElement.width, 0);
-            // canvasCtx.scale(-1, 1);
-            canvasCtx.drawImage(
-              videoRef.current,
-              0,
-              0,
-              canvasElement.width,
-              canvasElement.height
-            );
-            for (let landmark of result.landmarks) {
-              const body = getBodyPoints(landmark);
-              const angles = getAngles(body);
-
-              leftArmAngle = discretizeAngle(leftArmAngle, angles.leftArmAngle);
-              rightArmAngle = discretizeAngle(
-                rightArmAngle,
-                angles.rightArmAngle
-              );
-              leftLegAngle = discretizeAngle(leftLegAngle, angles.leftLegAngle);
-              rightLegAngle = discretizeAngle(
-                rightLegAngle,
-                angles.rightLegAngle
-              );
-              const width = canvasElement.getBoundingClientRect().width;
-              const height = canvasElement.getBoundingClientRect().height;
-              canvasElement.width = width;
-              canvasElement.height = height;
-              canvasCtx.translate(canvasElement.width, 0);
-              canvasCtx.scale(-1, 1);
+        if (lastVideoTime !== videoRef.current.currentTime) {
+          const currentWorkoutSettings =
+            store.getState().settings[currentWorkout];
+          threshold = {
+            down:
+              currentWorkoutSettings.userDefinedSettings?.angleDown ??
+              currentWorkoutSettings.defaultSettings?.angleDown,
+            up:
+              currentWorkoutSettings.userDefinedSettings?.angleUp ??
+              currentWorkoutSettings.defaultSettings?.angleUp,
+            time:
+              currentWorkoutSettings.userDefinedSettings?.thresholdTime ??
+              currentWorkoutSettings.defaultSettings?.thresholdTime,
+          };
+          lastVideoTime = videoRef.current.currentTime;
+          if (!lastTimeLeftStageChange) lastTimeLeftStageChange = lastVideoTime;
+          if (!lastTimeRightStageChange)
+            lastTimeRightStageChange = lastVideoTime;
+          poseLandmarker.detectForVideo(
+            videoRef.current,
+            performance.now(),
+            (result) => {
               canvasCtx.drawImage(
                 videoRef.current,
                 0,
@@ -231,155 +208,187 @@ export const Webcam = ({ workoutOption }) => {
                 canvasElement.width,
                 canvasElement.height
               );
-              if (currentWorkout === "armCurl") {
-                const threshold = { down: 120, up: 45, time: 0.75 };
-                const result = twoSideWorkout(
-                  threshold,
-                  leftArmAngle,
-                  leftStage,
-                  leftCount,
-                  rightArmAngle,
-                  rightStage,
-                  rightCount
-                );
-                if (
-                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
-                  leftCount !== result.leftCount
-                ) {
-                  leftCount = result.leftCount;
-                }
-                if (leftStage !== result.leftStage) {
-                  lastTimeLeftStageChange = lastVideoTime;
-                }
-                if (
-                  lastVideoTime - lastTimeRightStageChange > threshold.time &&
-                  rightCount !== result.rightCount
-                ) {
-                  rightCount = result.rightCount;
-                }
-                if (rightStage !== result.rightStage) {
-                  lastTimeRightStageChange = lastVideoTime;
-                }
-                rightStage = result.rightStage;
-                leftStage = result.leftStage;
-                writeOnCanvas(
-                  canvasElement,
-                  "left",
-                  leftArmAngle,
-                  leftStage,
-                  leftCount
-                );
-                writeOnCanvas(
-                  canvasElement,
-                  "right",
-                  rightArmAngle,
-                  rightStage,
-                  rightCount
-                );
-              } else if (currentWorkout === "squat") {
-                const threshold = { down: 100, up: 150, time: 0.75 };
-                const result = oneSideWorkout(
-                  threshold,
-                  leftLegAngle,
-                  leftStage,
-                  leftCount,
-                  rightLegAngle
-                );
-                if (
-                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
-                  leftCount !== result.leftCount
-                ) {
-                  leftCount = result.leftCount;
-                }
-                if (leftStage !== result.leftStage) {
-                  lastTimeLeftStageChange = lastVideoTime;
-                }
-                leftStage = result.leftStage;
-                writeOnCanvas(
-                  canvasElement,
-                  "left",
-                  leftLegAngle,
-                  leftStage,
-                  leftCount
-                );
-              } else if (currentWorkout === "benchPress") {
-                const threshold = { down: 50, up: 120, time: 0.75 };
-                const result = oneSideWorkout(
-                  threshold,
-                  leftArmAngle,
-                  leftStage,
-                  leftCount,
-                  rightArmAngle
-                );
-                if (
-                  lastVideoTime - lastTimeLeftStageChange > threshold.time &&
-                  leftCount !== result.leftCount
-                ) {
-                  leftCount = result.leftCount;
-                }
-                if (leftStage !== result.leftStage) {
-                  lastTimeLeftStageChange = lastVideoTime;
-                }
-                leftStage = result.leftStage;
+              for (let landmark of result.landmarks) {
+                const body = getBodyPoints(landmark);
+                const angles = getAngles(body);
 
-                writeOnCanvas(
-                  canvasElement,
-                  "left",
+                leftArmAngle = discretizeAngle(
                   leftArmAngle,
-                  leftStage,
-                  leftCount
+                  angles.leftArmAngle
                 );
-              } else if (currentWorkout === "demo") {
-                showDemo(
-                  canvasElement,
-                  body,
-                  leftArmAngle,
-                  leftLegAngle,
+                rightArmAngle = discretizeAngle(
                   rightArmAngle,
-                  rightLegAngle
+                  angles.rightArmAngle
+                );
+                leftLegAngle = discretizeAngle(
+                  leftLegAngle,
+                  angles.leftLegAngle
+                );
+                rightLegAngle = discretizeAngle(
+                  rightLegAngle,
+                  angles.rightLegAngle
+                );
+                const width = canvasElement.getBoundingClientRect().width;
+                const height = canvasElement.getBoundingClientRect().height;
+                canvasElement.width = width;
+                canvasElement.height = height;
+                canvasCtx.translate(canvasElement.width, 0);
+                canvasCtx.scale(-1, 1);
+                canvasCtx.drawImage(
+                  videoRef.current,
+                  0,
+                  0,
+                  canvasElement.width,
+                  canvasElement.height
+                );
+
+                const leftAngle =
+                  currentWorkoutSettings?.bodyPoints === "arms"
+                    ? leftArmAngle
+                    : currentWorkoutSettings?.bodyPoints === "legs"
+                    ? leftLegAngle
+                    : null;
+                const rightAngle =
+                  currentWorkoutSettings?.bodyPoints === "arms"
+                    ? rightArmAngle
+                    : currentWorkoutSettings?.bodyPoints === "legs"
+                    ? rightLegAngle
+                    : null;
+                if (currentWorkoutSettings?.isTwoSide) {
+                  const result = twoSideWorkout(
+                    threshold,
+                    leftAngle,
+                    leftStage,
+                    leftCount,
+                    rightAngle,
+                    rightStage,
+                    rightCount
+                  );
+                  if (
+                    lastVideoTime - lastTimeLeftStageChange > threshold.time &&
+                    leftCount !== result.leftCount
+                  ) {
+                    leftCount = result.leftCount;
+                  }
+                  if (leftStage !== result.leftStage) {
+                    lastTimeLeftStageChange = lastVideoTime;
+                  }
+                  if (
+                    lastVideoTime - lastTimeRightStageChange > threshold.time &&
+                    rightCount !== result.rightCount
+                  ) {
+                    rightCount = result.rightCount;
+                  }
+                  if (rightStage !== result.rightStage) {
+                    lastTimeRightStageChange = lastVideoTime;
+                  }
+                  rightStage = result.rightStage;
+                  leftStage = result.leftStage;
+                  writeOnCanvas(
+                    canvasElement,
+                    "left",
+                    leftAngle,
+                    leftStage,
+                    leftCount
+                  );
+                  writeOnCanvas(
+                    canvasElement,
+                    "right",
+                    rightAngle,
+                    rightStage,
+                    rightCount
+                  );
+                } else if (currentWorkoutSettings?.isTwoSide === false) {
+                  const leftAngle =
+                    currentWorkoutSettings?.bodyPoints === "arms"
+                      ? leftArmAngle
+                      : currentWorkoutSettings?.bodyPoints === "legs"
+                      ? leftLegAngle
+                      : null;
+                  const rightAngle =
+                    currentWorkoutSettings?.bodyPoints === "arms"
+                      ? rightArmAngle
+                      : currentWorkoutSettings?.bodyPoints === "legs"
+                      ? rightLegAngle
+                      : null;
+                  const result = oneSideWorkout(
+                    threshold,
+                    leftAngle,
+                    leftStage,
+                    leftCount,
+                    rightAngle
+                  );
+                  if (
+                    lastVideoTime - lastTimeLeftStageChange > threshold.time &&
+                    leftCount !== result.leftCount
+                  ) {
+                    leftCount = result.leftCount;
+                  }
+                  if (leftStage !== result.leftStage) {
+                    lastTimeLeftStageChange = lastVideoTime;
+                  }
+                  leftStage = result.leftStage;
+                  writeOnCanvas(
+                    canvasElement,
+                    "left",
+                    leftAngle,
+                    leftStage,
+                    leftCount
+                  );
+                } else {
+                  showDemo(
+                    canvasElement,
+                    body,
+                    leftArmAngle,
+                    leftLegAngle,
+                    rightArmAngle,
+                    rightLegAngle
+                  );
+                }
+                drawingUtils.drawLandmarks(landmark, {
+                  radius: (data) =>
+                    DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
+                });
+                drawingUtils.drawConnectors(
+                  landmark,
+                  PoseLandmarker.POSE_CONNECTIONS
                 );
               }
-
-              drawingUtils.drawLandmarks(landmark, {
-                radius: (data) =>
-                  DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
-              });
-              drawingUtils.drawConnectors(
-                landmark,
-                PoseLandmarker.POSE_CONNECTIONS
-              );
+              // canvasCtx.restore();
             }
-            // canvasCtx.restore();
-          }
-        );
-      }
+          );
+        }
 
-      // Call this function again to keep predicting when the browser is ready.
-      if (webcamRunning === true) {
-        enableWebcamButton.hidden = true;
-        setIsStreaming(true);
-        window.requestAnimationFrame(predictWebcam);
-      }
-    };
+        // Call this function again to keep predicting when the browser is ready.
+        if (webcamRunning === true) {
+          // enableWebcamButton.hidden = true;
+          setIsStreaming(true);
+          window.requestAnimationFrame(predictWebcam);
+        }
+      };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workoutOption]);
+  }, [workoutOption, store.getState().settings]);
 
   return (
     <div>
       <div className={`${workoutOption ?? "hidden"} w-full m-auto`}>
-        <button ref={enableWebcamRef} className="">
-          <span className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100">
+        {!isLoading && !isStreaming && (
+          <button
+            ref={enableWebcamRef}
+            className="min-w-[145px] inline-flex justify-center w-32 h-full p-4 m-auto text-xl font-bold text-white bg-blue-500 border border-transparent rounded-md rounded-r-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300"
+          >
             Start
-          </span>
-        </button>
+          </button>
+        )}
       </div>
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
       {isLoading && (
-        <span className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100">
+        <button className="min-w-[145px] inline-flex justify-center w-32 h-full p-4 m-auto text-xl font-bold text-white bg-blue-500 border border-transparent rounded-md rounded-r-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300">
           Loading...
-        </span>
+        </button>
       )}
       <div
         className={`${
@@ -389,15 +398,17 @@ export const Webcam = ({ workoutOption }) => {
         <div className="inline-flex w-full h-full m-auto">
           <button
             ref={restartRef}
-            className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100"
+            className="w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]"
           >
-            Restart Count
+            <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
+              Restart Count
+            </span>
           </button>
           <button
             ref={recordRef}
             className={`${
               !isRecording ? "block" : "hidden"
-            } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
+            } w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]`}
           >
             <div className="inline-flex w-full h-full">
               <img
@@ -405,7 +416,7 @@ export const Webcam = ({ workoutOption }) => {
                 alt="Record"
                 className="w-10 h-10 m-auto mr-2"
               />
-              <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+              <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
                 Record
               </span>
             </div>
@@ -414,7 +425,7 @@ export const Webcam = ({ workoutOption }) => {
             ref={stopRef}
             className={`${
               isRecording ? "block" : "hidden"
-            } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
+            } w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]`}
           >
             <div className="inline-flex w-full h-full">
               <img
@@ -422,7 +433,7 @@ export const Webcam = ({ workoutOption }) => {
                 alt="Stop"
                 className="w-10 h-10 m-auto mr-2 "
               />
-              <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+              <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
                 Stop
               </span>
             </div>
@@ -439,14 +450,14 @@ export const Webcam = ({ workoutOption }) => {
             target="_blank"
             rel="noreferrer"
           >
-            <button className="w-full h-16 rounded-lg bg-slate-800 min-w-[145px]">
+            <button className="w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]">
               <div className="inline-flex w-full h-full">
                 <img
                   src={DownloadIcon}
                   alt="Download"
                   className="w-10 h-10 m-auto mr-2 "
                 />
-                <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+                <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
                   Download
                 </span>
               </div>
@@ -454,9 +465,10 @@ export const Webcam = ({ workoutOption }) => {
           </a>
         </div>
       </div>
-
       <div style={{ position: "relative", margin: "10px" }}>
         <video
+          // className={`${isLoading ? "invisible" : "visible"}`}
+          className="invisible"
           ref={videoRef}
           style={{
             position: "absolute",

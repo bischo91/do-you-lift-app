@@ -1,28 +1,48 @@
 {
   "armCurl": {
     "label": "Arm Curl",
-    "angle": {
-      "down": 120,
-      "up": 45
+    "defaultSettings": {
+      "angleUp": 45,
+      "angleDown": 120,
+      "thresholdTime": 0.75
     },
-    "time": 0.75,
-    "isTwoSide": true
+    "userDefinedSettings": {
+      "angleUp": null,
+      "angleDown": null,
+      "thresholdTime": null
+    },
+    "isTwoSide": true,
+    "bodyPoints": "arms"
   },
   "squat": {
     "label": "Squat",
-    "angle": {
-      "down": 100,
-      "up": 150
+    "defaultSettings": {
+      "angleUp": 150,
+      "angleDown": 100,
+      "thresholdTime": 0.75
     },
-    "time": 0.75
+    "userDefinedSettings": {
+      "angleUp": null,
+      "angleDown": null,
+      "thresholdTime": null
+    },
+    "isTwoSide": false,
+    "bodyPoints": "legs"
   },
   "benchPress": {
     "label": "Bench Press",
-    "angle": {
-      "down": 50,
-      "up": 120
+    "defaultSettings": {
+      "angleUp": 170,
+      "angleDown": 120,
+      "thresholdTime": 0.5
     },
-    "time": 0.75
+    "userDefinedSettings": {
+      "angleUp": null,
+      "angleDown": null,
+      "thresholdTime": null
+    },
+    "isTwoSide": false,
+    "bodyPoints": "arms"
   },
   "demo": {
     "label": "Demo"

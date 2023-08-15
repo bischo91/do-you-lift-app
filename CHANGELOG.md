@@ -2,6 +2,30 @@
 
 <br />
 
+## [0.5.1] - 2023.08.15
+
+### Fixed
+
+- Function in useEffect running multiple times before initialization
+
+### Changed
+
+- Ensure `poseLandmarker` is created before streaming
+- Reordered and organized variables and functions
+
+### Added
+
+- Deadlift as default workout
+
+## [0.5.0] - 2023.08.15
+
+### Added
+
+- Setting button and modal for setting threshold for angle and time for the workout and also to creating a new workout type
+- Default angle and threshold time added for arm curl, bench press and squat
+- Need to work on: renaming variables, refactor, adding color for pose estimator, and adding position threshold for default workouts
+- Styling for Setting feature
+
 ## [0.4.0] - 2023.07.23
 
 ### Added
