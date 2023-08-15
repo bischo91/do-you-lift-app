@@ -61,11 +61,12 @@ export const Settings = () => {
   };
 
   const changeSetting = (e, settingKey) => {
-    if (settingKey === "angleUp") setAngleUpInput(Number(e.target.value));
+    if (settingKey === "angleUp")
+      setAngleUpInput(e.target.value ? Number(e.target.value) : "");
     else if (settingKey === "angleDown")
-      setAngleDownInput(Number(e.target.value));
+      setAngleDownInput(e.target.value ? Number(e.target.value) : "");
     else if (settingKey === "thresholdTime")
-      setThresholdTime(Number(e.target.value));
+      setThresholdTime(e.target.value ? Number(e.target.value) : "");
   };
 
   const setToDefault = (settingKey) => {
@@ -222,6 +223,7 @@ export const Settings = () => {
                     {["angleUp", "angleDown", "thresholdTime"].map(
                       (settingKey) => (
                         <SettingsInput
+                          disabled={!selectedOption}
                           key={settingKey}
                           inputId={settingKey}
                           changeSetting={(e) => changeSetting(e, settingKey)}
@@ -240,7 +242,7 @@ export const Settings = () => {
                         type="checkbox"
                         disabled={
                           store.getState().settings[selectedOption?.value]
-                            ?.defaultSettings
+                            ?.defaultSettings || !selectedOption
                         }
                         checked={isTwoSide}
                         onChange={(e) => {
@@ -262,7 +264,7 @@ export const Settings = () => {
                         ]}
                         isDisabled={
                           store.getState().settings[selectedOption?.value]
-                            ?.defaultSettings
+                            ?.defaultSettings || !selectedOption
                         }
                         value={bodyPoints}
                         onChange={(e) => {
@@ -275,9 +277,14 @@ export const Settings = () => {
                   <div className="mt-4">
                     <button
                       type="button"
-                      className="inline-flex justify-center px-4 py-2 mr-4 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center px-4 py-2 mr-4 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md disabled:opacity-50 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       onClick={saveSettings}
-                      disabled={!angleUpInput}
+                      disabled={
+                        !angleUpInput?.toString() ||
+                        !angleDownInput?.toString() ||
+                        !thresholdTime?.toString() ||
+                        !bodyPoints
+                      }
                     >
                       {selectedOption?.value === "newWorkout"
                         ? "Create and Save Setting"
