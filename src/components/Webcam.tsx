@@ -90,7 +90,7 @@ export const Webcam = ({ workoutOption }) => {
       if (!webcamRunning) {
         setIsLoading(true);
         webcamRunning = true;
-        enableWebcamRef.current.hidden = true;
+        // enableWebcamRef.current.hidden = true;
         if (!poseLandmarker) {
           console.log("Wait! poseLandmaker not loaded yet.");
           return;
@@ -141,7 +141,8 @@ export const Webcam = ({ workoutOption }) => {
           });
       }
     };
-    enableWebcamButton.addEventListener("click", enableCam);
+    if (enableWebcamButton)
+      enableWebcamButton.addEventListener("click", enableCam);
     window.addEventListener("resize", handleResize);
 
     // Enable the live webcam view and start detection.
@@ -352,7 +353,7 @@ export const Webcam = ({ workoutOption }) => {
 
       // Call this function again to keep predicting when the browser is ready.
       if (webcamRunning === true) {
-        enableWebcamButton.hidden = true;
+        // enableWebcamButton.hidden = true;
         setIsStreaming(true);
         window.requestAnimationFrame(predictWebcam);
       }
@@ -363,19 +364,22 @@ export const Webcam = ({ workoutOption }) => {
   return (
     <div>
       <div className={`${workoutOption ?? "hidden"} w-full m-auto`}>
-        <button ref={enableWebcamRef} className="">
-          <span className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100">
+        {!isLoading && !isStreaming && (
+          <button
+            ref={enableWebcamRef}
+            className="min-w-[145px] inline-flex justify-center w-32 h-full p-4 m-auto text-xl font-bold text-white bg-blue-500 border border-transparent rounded-md rounded-r-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300"
+          >
             Start
-          </span>
-        </button>
+          </button>
+        )}
       </div>
       <span ref={workoutRef} hidden>
         {workoutOption?.value}
       </span>
       {isLoading && (
-        <span className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100">
+        <button className="min-w-[145px] inline-flex justify-center w-32 h-full p-4 m-auto text-xl font-bold text-white bg-blue-500 border border-transparent rounded-md rounded-r-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300">
           Loading...
-        </span>
+        </button>
       )}
       <div
         className={`${
@@ -385,15 +389,17 @@ export const Webcam = ({ workoutOption }) => {
         <div className="inline-flex w-full h-full m-auto">
           <button
             ref={restartRef}
-            className="min-w-[145px] w-full h-16 p-3 mx-2 rounded-lg md:text-lg md:font-semibold bg-slate-800 text-slate-100"
+            className="w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]"
           >
-            Restart Count
+            <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
+              Restart Count
+            </span>
           </button>
           <button
             ref={recordRef}
             className={`${
               !isRecording ? "block" : "hidden"
-            } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
+            } w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]`}
           >
             <div className="inline-flex w-full h-full">
               <img
@@ -401,7 +407,7 @@ export const Webcam = ({ workoutOption }) => {
                 alt="Record"
                 className="w-10 h-10 m-auto mr-2"
               />
-              <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+              <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
                 Record
               </span>
             </div>
@@ -410,7 +416,7 @@ export const Webcam = ({ workoutOption }) => {
             ref={stopRef}
             className={`${
               isRecording ? "block" : "hidden"
-            } w-full h-16 mx-2 rounded-lg bg-slate-800 min-w-[145px]`}
+            } w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]`}
           >
             <div className="inline-flex w-full h-full">
               <img
@@ -418,7 +424,7 @@ export const Webcam = ({ workoutOption }) => {
                 alt="Stop"
                 className="w-10 h-10 m-auto mr-2 "
               />
-              <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+              <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
                 Stop
               </span>
             </div>
@@ -435,14 +441,14 @@ export const Webcam = ({ workoutOption }) => {
             target="_blank"
             rel="noreferrer"
           >
-            <button className="w-full h-16 rounded-lg bg-slate-800 min-w-[145px]">
+            <button className="w-full border border-transparent bg-blue-500 text-white h-16 mx-2 rounded-lg disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300 min-w-[145px]">
               <div className="inline-flex w-full h-full">
                 <img
                   src={DownloadIcon}
                   alt="Download"
                   className="w-10 h-10 m-auto mr-2 "
                 />
-                <span className="m-auto ml-0 md:font-semibold md:text-lg text-slate-100">
+                <span className="m-auto ml-0 text-lg md:font-semibold md:text-xl">
                   Download
                 </span>
               </div>

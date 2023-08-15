@@ -10,7 +10,7 @@ export const SettingsInput = ({
 }) => {
   const validateAngle = (angle) =>
     Number.isInteger(Number(angle)) && 0 <= angle && angle <= 180;
-  const validateTime = (time) => Number(time) && 0 <= time;
+  const validateTime = (time) => Number.isFinite(Number(time)) && 0 <= time;
   return (
     <div>
       <label className="block mb-2 text-sm font-medium text-gray-900">
@@ -35,10 +35,10 @@ export const SettingsInput = ({
         />
         {hasDefaultSetting && (
           <button
-            className="absolute inset-y-0 right-0 flex items-center px-4 font-bold text-white bg-blue-500 rounded-r-lg hover:bg-blue-300"
+            className="absolute inset-y-0 right-0 flex items-center px-4 text-sm text-white bg-blue-500 rounded-r-lg hover:bg-blue-300"
             onClick={setDefaultInput}
           >
-            Set Default
+            Set To Default
           </button>
         )}
         {inputId.includes("angle") && !validateAngle(inputValue) && (

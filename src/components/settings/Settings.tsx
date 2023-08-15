@@ -5,7 +5,6 @@ import Select from "react-select";
 import { SettingsInput } from "./SettingsInput";
 import { setSettings } from "../../redux/settings";
 import store from "../../redux/store";
-// import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
 import workout from "./workout.json";
 
@@ -122,7 +121,7 @@ export const Settings = () => {
         <button
           type="button"
           onClick={openModal}
-          className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md bg-opacity-20 hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+          className="inline-flex justify-center px-4 py-2 mr-4 font-bold text-white bg-blue-500 border border-transparent rounded-md rounded-r-lg py-2rounded-md text-md disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300"
         >
           Settings
         </button>
@@ -277,7 +276,7 @@ export const Settings = () => {
                   <div className="mt-4">
                     <button
                       type="button"
-                      className="inline-flex justify-center px-4 py-2 mr-4 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md disabled:opacity-50 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center px-4 py-2 mr-4 font-bold text-white bg-blue-500 border border-transparent rounded-md rounded-r-lg text-md disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300"
                       onClick={saveSettings}
                       disabled={
                         !angleUpInput?.toString() ||
@@ -292,7 +291,7 @@ export const Settings = () => {
                     </button>
                     <button
                       type="button"
-                      className="inline-flex justify-center px-4 py-2 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center px-4 py-2 mr-4 font-bold text-white bg-blue-500 border border-transparent rounded-md rounded-r-lg text-md disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 hover:bg-blue-300"
                       onClick={closeModal}
                     >
                       Close
