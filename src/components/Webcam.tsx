@@ -52,6 +52,7 @@ export const Webcam = ({ workoutOption }) => {
   };
 
   useEffect(() => {
+    if (!workoutOption) return;
     if (!navigator.mediaDevices?.getUserMedia)
       console.warn("getUserMedia() is not supported by your browser");
 
@@ -90,7 +91,6 @@ export const Webcam = ({ workoutOption }) => {
       if (!webcamRunning) {
         setIsLoading(true);
         webcamRunning = true;
-        // enableWebcamRef.current.hidden = true;
         if (!poseLandmarker) {
           console.log("Wait! poseLandmaker not loaded yet.");
           return;
@@ -104,7 +104,6 @@ export const Webcam = ({ workoutOption }) => {
             cameraAspectRatio = stream
               .getVideoTracks()[0]
               .getSettings().aspectRatio;
-            console.log(stream.getVideoTracks());
             const frameRate = stream
               .getVideoTracks()[0]
               .getSettings().frameRate;
@@ -336,7 +335,6 @@ export const Webcam = ({ workoutOption }) => {
                   rightLegAngle
                 );
               }
-
               drawingUtils.drawLandmarks(landmark, {
                 radius: (data) =>
                   DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
