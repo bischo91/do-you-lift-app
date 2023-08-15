@@ -305,6 +305,12 @@ export const Webcam = ({ workoutOption }) => {
                       : currentWorkoutSettings?.bodyPoints === "legs"
                       ? leftLegAngle
                       : null;
+                  const rightAngle =
+                    currentWorkoutSettings?.bodyPoints === "arms"
+                      ? rightArmAngle
+                      : currentWorkoutSettings?.bodyPoints === "legs"
+                      ? rightLegAngle
+                      : null;
                   const result = oneSideWorkout(
                     threshold,
                     leftAngle,

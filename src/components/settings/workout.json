@@ -32,9 +32,9 @@
   "benchPress": {
     "label": "Bench Press",
     "defaultSettings": {
-      "angleUp": 160,
-      "angleDown": 90,
-      "thresholdTime": 0.75
+      "angleUp": 170,
+      "angleDown": 120,
+      "thresholdTime": 0.5
     },
     "userDefinedSettings": {
       "angleUp": null,
