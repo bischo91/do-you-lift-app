@@ -2,6 +2,21 @@
 
 <br />
 
+## [0.5.1] - 2023.08.15
+
+### Fixed
+
+- Function in useEffect running multiple times before initialization
+
+### Changed
+
+- Ensure `poseLandmarker` is created before streaming
+- Reordered and organized variables and functions
+
+### Added
+
+- Deadlift as default workout
+
 ## [0.5.0] - 2023.08.15
 
 ### Added

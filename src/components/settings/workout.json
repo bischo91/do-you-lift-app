@@ -44,6 +44,21 @@
     "isTwoSide": false,
     "bodyPoints": "arms"
   },
+  "deadLift": {
+    "label": "Dead Lift",
+    "defaultSettings": {
+      "angleUp": 140,
+      "angleDown": 60,
+      "thresholdTime": 0.75
+    },
+    "userDefinedSettings": {
+      "angleUp": null,
+      "angleDown": null,
+      "thresholdTime": null
+    },
+    "isTwoSide": false,
+    "bodyPoints": "legs"
+  },
   "demo": {
     "label": "Demo"
   }

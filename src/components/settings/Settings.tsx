@@ -55,8 +55,6 @@ export const Settings = () => {
       setBodyPoints(null);
       setNewWorkout("");
     }
-    console.log(store.getState());
-    // console.log(!hasDefaultSetting);
   };
 
   const changeSetting = (e, settingKey) => {
@@ -78,7 +76,6 @@ export const Settings = () => {
       setAngleDownInput(selected.defaultSettings.angleDown);
     else if (settingKey === "thresholdTime")
       setThresholdTime(selected.defaultSettings.thresholdTime);
-    console.log(angleUpInput);
   };
 
   const getInput = (settingKey) => {
@@ -171,13 +168,9 @@ export const Settings = () => {
                             label: "(Create New Workout)",
                           },
                         ]}
-                        // options={options}
                         onMenuOpen={() =>
                           Object.keys(store.getState().settings).forEach(
                             (value) => {
-                              console.log(store.getState().settings);
-                              console.log(options);
-                              console.log(value);
                               if (
                                 options.filter(
                                   (option) => option.value === value
