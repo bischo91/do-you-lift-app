@@ -259,12 +259,6 @@ export const Webcam = ({ workoutOption }) => {
                 // for bench press,
                 // - for down elbow should be lower than shoulder
                 // - for up, wrist should be higher than elbow, and elbow and wrist should be higher than every other points
-
-                // for dead lift,
-                // switch up/down only while arm angles are >160 and leg angles are >60 && shoulder>elbow>wrist
-                // for down, wrist < knee && elbow < hip
-                // for up, wrist >knee && elbow > hip
-
                 if (currentWorkoutSettings?.isTwoSide) {
                   const result = twoSideWorkout(
                     threshold,
