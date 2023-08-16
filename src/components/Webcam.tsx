@@ -397,7 +397,7 @@ export const Webcam = ({ workoutOption }) => {
                       { color: "red" }
                     );
                   }
-                } else if (currentWorkoutSettings?.bodyPoints == "legs") {
+                } else if (currentWorkoutSettings?.bodyPoints === "legs") {
                   if (currentWorkoutSettings?.isTwoSide) {
                     drawingUtils.drawConnectors(
                       [
