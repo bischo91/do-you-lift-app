@@ -5,6 +5,7 @@ import {
 } from "@mediapipe/tasks-vision";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  deadliftPreset,
   discretizeAngle,
   getAngles,
   getBodyPoints,
@@ -63,8 +64,8 @@ export const Webcam = ({ workoutOption }) => {
 
       let leftCount = 0;
       let rightCount = 0;
-      let leftStage: "down" | "up" = "down";
-      let rightStage: "down" | "up" = "down";
+      let leftStage: "down" | "up";
+      let rightStage: "down" | "up";
       let chunks = [];
 
       let initialize = true;
@@ -255,6 +256,15 @@ export const Webcam = ({ workoutOption }) => {
                     : currentWorkoutSettings?.bodyPoints === "legs"
                     ? rightLegAngle
                     : null;
+                // for bench press,
+                // - for down elbow should be lower than shoulder
+                // - for up, wrist should be higher than elbow, and elbow and wrist should be higher than every other points
+
+                // for dead lift,
+                // switch up/down only while arm angles are >160 and leg angles are >60 && shoulder>elbow>wrist
+                // for down, wrist < knee && elbow < hip
+                // for up, wrist >knee && elbow > hip
+
                 if (currentWorkoutSettings?.isTwoSide) {
                   const result = twoSideWorkout(
                     threshold,
@@ -336,7 +346,7 @@ export const Webcam = ({ workoutOption }) => {
                     leftStage,
                     leftCount
                   );
-                } else {
+                } else if (currentWorkout === "demo") {
                   showDemo(
                     canvasElement,
                     body,
@@ -344,6 +354,33 @@ export const Webcam = ({ workoutOption }) => {
                     leftLegAngle,
                     rightArmAngle,
                     rightLegAngle
+                  );
+                } else if (currentWorkout === "deadlift") {
+                  const result = deadliftPreset(
+                    leftArmAngle,
+                    rightArmAngle,
+                    leftLegAngle,
+                    rightLegAngle,
+                    body,
+                    leftStage,
+                    leftCount
+                  );
+                  if (
+                    lastVideoTime - lastTimeLeftStageChange > 0.3 &&
+                    leftCount !== result.leftCount
+                  ) {
+                    leftCount = result.leftCount;
+                  }
+                  if (leftStage !== result.leftStage) {
+                    lastTimeLeftStageChange = lastVideoTime;
+                  }
+                  leftStage = result.leftStage;
+                  writeOnCanvas(
+                    canvasElement,
+                    "left",
+                    leftAngle,
+                    leftStage,
+                    leftCount
                   );
                 }
 

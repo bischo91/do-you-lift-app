@@ -139,10 +139,52 @@ export const writeOnCanvas = (
   canvasContext.fillStyle = "black";
   canvasContext.fillRect(fillX, fillY, widthX, widthY);
   canvasContext.fillStyle = "white";
-  canvasContext.fillText(`Angle: ${angle.toFixed(0)}\u00B0`, textX, angleY);
+  if (angle)
+    canvasContext.fillText(`Angle: ${angle.toFixed(0)}\u00B0`, textX, angleY);
   canvasContext.fillText(`Count: ${count}`, textX, countY);
   canvasContext.fillText(stage.toUpperCase(), textX, stageY);
   canvasContext.restore();
+};
+
+export const deadliftPreset = (
+  leftArmAngle,
+  rightArmAngle,
+  leftLegAngle,
+  rightLegAngle,
+  body,
+  leftStage,
+  leftCount
+) => {
+  if (
+    leftArmAngle > 160 &&
+    rightArmAngle > 160 &&
+    leftLegAngle > 60 &&
+    rightLegAngle > 60 &&
+    body.left.shoulder.y < body.left.elbow.y &&
+    body.left.elbow.y < body.left.wrist.y &&
+    body.right.shoulder.y < body.right.elbow.y &&
+    body.right.elbow.y < body.right.wrist.y
+  ) {
+    if (
+      body.left.wrist.y > body.left.knee.y &&
+      body.right.wrist.y > body.right.knee.y &&
+      body.left.elbow.y > body.left.hip.y &&
+      body.right.elbow.y > body.right.hip.y
+    ) {
+      leftStage = "down";
+    }
+    if (
+      leftStage === "down" &&
+      body.left.wrist.y < body.left.knee.y &&
+      body.right.wrist.y < body.right.knee.y &&
+      body.left.elbow.y < body.left.hip.y &&
+      body.right.elbow.y < body.right.hip.y
+    ) {
+      leftStage = "up";
+      leftCount++;
+    }
+  }
+  return { leftStage, leftCount };
 };
 
 export const twoSideWorkout = (

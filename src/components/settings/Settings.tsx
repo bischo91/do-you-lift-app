@@ -16,7 +16,7 @@ export const Settings = () => {
       value,
       label: store.getState().settings[value].label,
     }))
-    .filter(({ value }) => value !== "demo");
+    .filter(({ value }) => value !== "demo" && value !== "deadlift");
 
   const [selectedOption, setSelectedOption] = useState(null);
   const [angleUpInput, setAngleUpInput] = useState(null);
@@ -175,7 +175,8 @@ export const Settings = () => {
                                 options.filter(
                                   (option) => option.value === value
                                 ).length === 0 &&
-                                value !== "demo"
+                                value !== "demo" &&
+                                value !== "deadlift"
                               )
                                 options.push({
                                   value,
