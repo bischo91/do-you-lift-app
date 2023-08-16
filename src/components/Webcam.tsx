@@ -8,6 +8,7 @@ import {
   discretizeAngle,
   getAngles,
   getBodyPoints,
+  getLandMarkIndex,
   oneSideWorkout,
   showDemo,
   twoSideWorkout,
@@ -345,14 +346,97 @@ export const Webcam = ({ workoutOption }) => {
                     rightLegAngle
                   );
                 }
+
                 drawingUtils.drawLandmarks(landmark, {
                   radius: (data) =>
                     DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
+                  fillColor: "black",
+                  color: "white",
                 });
+
                 drawingUtils.drawConnectors(
                   landmark,
                   PoseLandmarker.POSE_CONNECTIONS
                 );
+                if (currentWorkoutSettings?.bodyPoints === "arms") {
+                  if (currentWorkoutSettings?.isTwoSide) {
+                    drawingUtils.drawConnectors(
+                      [
+                        getLandMarkIndex(landmark).leftShoulder,
+                        getLandMarkIndex(landmark).leftElbow,
+                        getLandMarkIndex(landmark).leftWrist,
+                      ],
+                      PoseLandmarker.POSE_CONNECTIONS,
+                      { color: "blue" }
+                    );
+                    drawingUtils.drawConnectors(
+                      [
+                        getLandMarkIndex(landmark).rightShoulder,
+                        getLandMarkIndex(landmark).rightElbow,
+                        getLandMarkIndex(landmark).rightWrist,
+                      ],
+                      PoseLandmarker.POSE_CONNECTIONS,
+                      { color: "red" }
+                    );
+                  } else {
+                    drawingUtils.drawConnectors(
+                      [
+                        getLandMarkIndex(landmark).leftWrist,
+                        getLandMarkIndex(landmark).leftElbow,
+                        getLandMarkIndex(landmark).leftShoulder,
+                        getLandMarkIndex(landmark).rightShoulder,
+                        getLandMarkIndex(landmark).rightElbow,
+                        getLandMarkIndex(landmark).rightWrist,
+                      ],
+                      [
+                        { start: 0, end: 1 },
+                        { start: 1, end: 2 },
+                        { start: 3, end: 4 },
+                        { start: 4, end: 5 },
+                      ],
+                      { color: "red" }
+                    );
+                  }
+                } else if (currentWorkoutSettings?.bodyPoints == "legs") {
+                  if (currentWorkoutSettings?.isTwoSide) {
+                    drawingUtils.drawConnectors(
+                      [
+                        getLandMarkIndex(landmark).leftHip,
+                        getLandMarkIndex(landmark).leftKnee,
+                        getLandMarkIndex(landmark).leftAnkle,
+                      ],
+                      PoseLandmarker.POSE_CONNECTIONS,
+                      { color: "blue" }
+                    );
+                    drawingUtils.drawConnectors(
+                      [
+                        getLandMarkIndex(landmark).rightHip,
+                        getLandMarkIndex(landmark).rightKnee,
+                        getLandMarkIndex(landmark).rightAnkle,
+                      ],
+                      PoseLandmarker.POSE_CONNECTIONS,
+                      { color: "red" }
+                    );
+                  } else {
+                    drawingUtils.drawConnectors(
+                      [
+                        getLandMarkIndex(landmark).leftAnkle,
+                        getLandMarkIndex(landmark).leftKnee,
+                        getLandMarkIndex(landmark).leftHip,
+                        getLandMarkIndex(landmark).rightHip,
+                        getLandMarkIndex(landmark).rightKnee,
+                        getLandMarkIndex(landmark).rightAnkle,
+                      ],
+                      [
+                        { start: 0, end: 1 },
+                        { start: 1, end: 2 },
+                        { start: 3, end: 4 },
+                        { start: 4, end: 5 },
+                      ],
+                      { color: "red" }
+                    );
+                  }
+                }
               }
               // canvasCtx.restore();
             }
