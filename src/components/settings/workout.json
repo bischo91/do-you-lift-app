@@ -44,6 +44,9 @@
     "isTwoSide": false,
     "bodyPoints": "arms"
   },
+  "deadlift": {
+    "label": "Deadlift"
+  },
   "demo": {
     "label": "Demo"
   }

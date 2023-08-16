@@ -2,6 +2,12 @@
 
 <br />
 
+## [0.5.2] - 2023.08.16
+
+### Added
+
+- Deadlift workout, which is based on positions, and not angle threshold. Deadlift is not editable as it looks at positions rather than angles.
+
 ## [0.5.1] - 2023.08.15
 
 ### Fixed
