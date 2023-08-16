@@ -10,11 +10,6 @@ const settingsSlice = createSlice({
   reducers: {
     setSettings: (state, action) => {
       const workout = Object.keys(action.payload)[0];
-      console.log(state);
-      // if (state[workout]) {
-      //   state[workout].userDefinedSettings =
-      //     action.payload[workout].userDefinedSettings;
-      // } else
       state[workout] = {
         label: workout,
         userDefinedSettings: action.payload[workout].userDefinedSettings,
@@ -24,19 +19,10 @@ const settingsSlice = createSlice({
     },
   },
 });
-// const { reducer, actions } = settingsSlice;
 const { reducer } = settingsSlice;
 
 export const { setSettings } = settingsSlice.actions;
 
 export default reducer;
-// const store = configureStore({
-//   reducer: settingsSlice.reducer,
-// });
-
-// store.subscribe(() => console.log(store.getState()));
-
-// store.dispatch(setSettings());
-// store.dispatch(getSettings());
 
 // https://redux.js.org/introduction/getting-started

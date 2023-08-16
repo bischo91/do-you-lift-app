@@ -154,19 +154,36 @@ export const twoSideWorkout = (
   rightStage: "up" | "down",
   rightCount: number
 ) => {
-  if (leftAngle >= threshold.down) {
-    leftStage = "down";
-  }
-  if (leftAngle <= threshold.up && leftStage === "down") {
-    leftStage = "up";
-    leftCount++;
-  }
-  if (rightAngle >= threshold.down) {
-    rightStage = "down";
-  }
-  if (rightAngle <= threshold.up && rightStage === "down") {
-    rightStage = "up";
-    rightCount++;
+  if (threshold.down > threshold.up) {
+    if (leftAngle >= threshold.down) {
+      leftStage = "down";
+    }
+    if (leftAngle <= threshold.up && leftStage === "down") {
+      leftStage = "up";
+      leftCount++;
+    }
+    if (rightAngle >= threshold.down) {
+      rightStage = "down";
+    }
+    if (rightAngle <= threshold.up && rightStage === "down") {
+      rightStage = "up";
+      rightCount++;
+    }
+  } else {
+    if (leftAngle >= threshold.up && leftStage === "down") {
+      leftStage = "up";
+      leftCount++;
+    }
+    if (leftAngle <= threshold.down) {
+      leftStage = "down";
+    }
+    if (rightAngle >= threshold.up && rightStage === "down") {
+      rightStage = "up";
+      rightCount++;
+    }
+    if (rightAngle <= threshold.down) {
+      rightStage = "down";
+    }
   }
 
   return { leftStage, leftCount, rightStage, rightCount };
@@ -179,16 +196,30 @@ export const oneSideWorkout = (
   leftCount: number,
   rightAngle: number
 ) => {
-  if (
-    leftAngle >= threshold.up &&
-    rightAngle >= threshold.up &&
-    leftStage === "down"
-  ) {
-    leftStage = "up";
-    leftCount++;
-  }
-  if (leftAngle <= threshold.down && rightAngle <= threshold.down) {
-    leftStage = "down";
+  if (threshold.down > threshold.up) {
+    if (
+      leftAngle <= threshold.up &&
+      rightAngle <= threshold.up &&
+      leftStage === "down"
+    ) {
+      leftStage = "up";
+      leftCount++;
+    }
+    if (leftAngle >= threshold.down && rightAngle >= threshold.down) {
+      leftStage = "down";
+    }
+  } else {
+    if (
+      leftAngle >= threshold.up &&
+      rightAngle >= threshold.up &&
+      leftStage === "down"
+    ) {
+      leftStage = "up";
+      leftCount++;
+    }
+    if (leftAngle <= threshold.down && rightAngle <= threshold.down) {
+      leftStage = "down";
+    }
   }
   return { leftStage, leftCount };
 };
