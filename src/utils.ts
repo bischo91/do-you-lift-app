@@ -139,7 +139,7 @@ export const writeOnCanvas = (
   canvasContext.fillStyle = "black";
   canvasContext.fillRect(fillX, fillY, widthX, widthY);
   canvasContext.fillStyle = "white";
-  if (angle)
+  if (angle >= 0)
     canvasContext.fillText(`Angle: ${angle.toFixed(0)}\u00B0`, textX, angleY);
   canvasContext.fillText(`Count: ${count}`, textX, countY);
   canvasContext.fillText(stage.toUpperCase(), textX, stageY);
