@@ -140,7 +140,7 @@ export const writeOnCanvas = (
   canvasContext.fillRect(fillX, fillY, widthX, widthY);
   canvasContext.fillStyle = "white";
   if (angle >= 0)
-    canvasContext.fillText(`Angle: ${angle.toFixed(0)}\u00B0`, textX, angleY);
+    canvasContext.fillText(`Angle: ${angle?.toFixed(0)}\u00B0`, textX, angleY);
   canvasContext.fillText(`Count: ${count}`, textX, countY);
   if (stage) canvasContext.fillText(stage.toUpperCase(), textX, stageY);
   canvasContext.restore();
@@ -289,12 +289,12 @@ export const showDemo = (
   canvasContext.fillRect(0, 0, width / 3, height / 3);
   canvasContext.fillStyle = "white";
   canvasContext.fillText(
-    `left arm angle: ${leftArmAngle.toFixed(0)}`,
+    `left arm angle: ${leftArmAngle?.toFixed(0)}`,
     10,
     textHeight * 1
   );
   canvasContext.fillText(
-    `left leg angle: ${leftLegAngle.toFixed(0)}`,
+    `left leg angle: ${leftLegAngle?.toFixed(0)}`,
     10,
     textHeight * 2
   );
@@ -343,12 +343,12 @@ export const showDemo = (
     textHeight * 8
   );
   canvasContext.fillText(
-    `right arm angle: ${rightArmAngle.toFixed(0)}`,
+    `right arm angle: ${rightArmAngle?.toFixed(0)}`,
     10 + (2 * width) / 3,
     textHeight * 1
   );
   canvasContext.fillText(
-    `right leg angle: ${rightLegAngle.toFixed(0)}`,
+    `right leg angle: ${rightLegAngle?.toFixed(0)}`,
     10 + (2 * width) / 3,
     textHeight * 2
   );
